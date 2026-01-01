@@ -1,0 +1,113 @@
+syntax = "proto3";
+
+package core;
+
+option go_package = "./core";
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+service Core{
+    rpc Internal(InternalRequest) returns (InternalResponse) {
+        option (google.api.http) = {
+            post: "/v1/internal"
+            body: "*"
+        };
+    }
+    rpc SbpOutgoing(SbpOutgoingRequest) returns (SbpOutgoingResponse) {
+        option (google.api.http) = {
+            post: "/v1/sbp-outgoing"
+            body: "*"
+        };
+    }
+    rpc CashIn(CashInRequest) returns (CashInResponse) {
+        option (google.api.http) = {
+            post: "/v1/cash/in"
+            body: "*"
+        };
+  }
+
+    rpc CashOut(CashOutRequest) returns (CashOutResponse) {
+        option (google.api.http) = {
+            post: "/v1/cash/out"
+            body: "*"
+        };
+    } 
+}
+
+// OperationStatus - общий статус операции в банке. Разные системы переводят его в разный момент времени.
+enum OperationStatus {
+    Unknown = 0;
+    Created = 1;
+    AntifraudCheck = 2;
+    Declined = 3; // На деле, тут еще и может быть заложен челлендж
+    Approved = 4;
+    Closed = 5;
+}
+
+
+message Transaction{
+    // уникальный ключ
+    uint64 id = 1;
+    // UUID транзакции из внешней системы
+    string transaction_id = 2; 
+    // дата и время операции, как передано источником
+    google.protobuf.Timestamp created_at = 3;
+    // сумма транзакции
+    int64 amount = 4;
+    // валюта (RUB / USD / EUR)
+    string currency = 5;
+    // название/идентификатор магазина/сервиса
+    string merchant = 6;
+    // ISO-код страны (RU/US/CA)
+    string country = 7;
+    // uuid отправителя
+    string sender_id = 8;
+}
+
+message InternalRequest{
+    // uuid проводки
+    string id = 1;
+    // транзакция
+    Transaction transaction = 2;
+    // uuid получателя
+    string receiver_id = 3;
+}
+message InternalResponse{
+    OperationStatus new_status = 1;
+}
+message SbpOutgoingRequest{
+    // uuid проводки
+    string id = 1;
+    // транзакция
+    Transaction transaction = 2;
+    // uuid получателя
+    string receiver_id = 3;
+    // bic банка получателя
+    string bic = 4;
+}
+message SbpOutgoingResponse{
+    OperationStatus new_status = 1;
+}
+message CashInRequest{
+    // uuid проводки
+    string id = 1;
+    // транзакция
+    Transaction transaction = 2;
+    // uuid банкомата
+    string atm_id = 3;
+}
+message CashInResponse{
+    OperationStatus new_status = 1;
+}
+message CashOutRequest{
+    // uuid проводки
+    string id = 1;
+    // транзакция
+    Transaction transaction = 2;
+    // uuid банкомата
+    string atm_id = 3;
+}
+message CashOutResponse{
+    OperationStatus new_status = 1;
+}

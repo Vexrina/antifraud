@@ -73,3 +73,29 @@
 ### Перспективы развития
 
 Подсветите моменты, которые, по вашему мнению, положительно повлияют на оптимизацию, производительность и безопасность.
+
+
+
+
+
+
+before any codegen:
+``` bash
+$ git clone https://github.com/googleapis/googleapis.git third_party/googleapis
+```
+
+check ur output:
+```bash
+$ tree -L 1
+.
+├── README.md
+├── antifraud
+├── chosen_theme.md
+├── processing_core
+├── quest.md
+└── third_party
+
+# or
+$ ls
+README.md  antifraud  chosen_theme.md  processing_core  quest.md  third_party
+```

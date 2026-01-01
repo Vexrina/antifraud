@@ -1,0 +1,335 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "core.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Core"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/cash/in": {
+      "post": {
+        "operationId": "Core_CashIn",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/coreCashInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/coreCashInRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
+    "/v1/cash/out": {
+      "post": {
+        "operationId": "Core_CashOut",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/coreCashOutResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/coreCashOutRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
+    "/v1/internal": {
+      "post": {
+        "operationId": "Core_Internal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/coreInternalResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/coreInternalRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
+    "/v1/sbp-outgoing": {
+      "post": {
+        "operationId": "Core_SbpOutgoing",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/coreSbpOutgoingResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/coreSbpOutgoingRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "coreCashInRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "uuid проводки"
+        },
+        "transaction": {
+          "$ref": "#/definitions/coreTransaction",
+          "title": "транзакция"
+        },
+        "atmId": {
+          "type": "string",
+          "title": "uuid банкомата"
+        }
+      }
+    },
+    "coreCashInResponse": {
+      "type": "object",
+      "properties": {
+        "newStatus": {
+          "$ref": "#/definitions/coreOperationStatus"
+        }
+      }
+    },
+    "coreCashOutRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "uuid проводки"
+        },
+        "transaction": {
+          "$ref": "#/definitions/coreTransaction",
+          "title": "транзакция"
+        },
+        "atmId": {
+          "type": "string",
+          "title": "uuid банкомата"
+        }
+      }
+    },
+    "coreCashOutResponse": {
+      "type": "object",
+      "properties": {
+        "newStatus": {
+          "$ref": "#/definitions/coreOperationStatus"
+        }
+      }
+    },
+    "coreInternalRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "uuid проводки"
+        },
+        "transaction": {
+          "$ref": "#/definitions/coreTransaction",
+          "title": "транзакция"
+        },
+        "receiverId": {
+          "type": "string",
+          "title": "uuid получателя"
+        }
+      }
+    },
+    "coreInternalResponse": {
+      "type": "object",
+      "properties": {
+        "newStatus": {
+          "$ref": "#/definitions/coreOperationStatus"
+        }
+      }
+    },
+    "coreOperationStatus": {
+      "type": "string",
+      "enum": [
+        "Unknown",
+        "Created",
+        "AntifraudCheck",
+        "Declined",
+        "Approved",
+        "Closed"
+      ],
+      "default": "Unknown",
+      "description": "OperationStatus - общий статус операции в банке. Разные системы переводят его в разный момент времени.\n\n - Declined: На деле, тут еще и может быть заложен челлендж"
+    },
+    "coreSbpOutgoingRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "uuid проводки"
+        },
+        "transaction": {
+          "$ref": "#/definitions/coreTransaction",
+          "title": "транзакция"
+        },
+        "receiverId": {
+          "type": "string",
+          "title": "uuid получателя"
+        },
+        "bic": {
+          "type": "string",
+          "title": "bic банка получателя"
+        }
+      }
+    },
+    "coreSbpOutgoingResponse": {
+      "type": "object",
+      "properties": {
+        "newStatus": {
+          "$ref": "#/definitions/coreOperationStatus"
+        }
+      }
+    },
+    "coreTransaction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64",
+          "title": "уникальный ключ"
+        },
+        "transactionId": {
+          "type": "string",
+          "title": "UUID транзакции из внешней системы"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "title": "дата и время операции, как передано источником"
+        },
+        "amount": {
+          "type": "string",
+          "format": "int64",
+          "title": "сумма транзакции"
+        },
+        "currency": {
+          "type": "string",
+          "title": "валюта (RUB / USD / EUR)"
+        },
+        "merchant": {
+          "type": "string",
+          "title": "название/идентификатор магазина/сервиса"
+        },
+        "country": {
+          "type": "string",
+          "title": "ISO-код страны (RU/US/CA)"
+        },
+        "senderId": {
+          "type": "string",
+          "title": "uuid отправителя"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
