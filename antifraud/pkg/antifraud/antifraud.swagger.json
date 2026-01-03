@@ -1,0 +1,219 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "antifraud.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "OnlineCheck"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/cash-out": {
+      "post": {
+        "operationId": "OnlineCheck_CashOut",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/antifraudCheckResult"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/antifraudTransaction"
+            }
+          }
+        ],
+        "tags": [
+          "OnlineCheck"
+        ]
+      }
+    },
+    "/v1/internal": {
+      "post": {
+        "operationId": "OnlineCheck_Internal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/antifraudCheckResult"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/antifraudTransaction"
+            }
+          }
+        ],
+        "tags": [
+          "OnlineCheck"
+        ]
+      }
+    },
+    "/v1/sbp-outgoing": {
+      "post": {
+        "operationId": "OnlineCheck_SbpOutgoing",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/antifraudCheckResult"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/antifraudTransaction"
+            }
+          }
+        ],
+        "tags": [
+          "OnlineCheck"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "antifraudCheckResult": {
+      "type": "object",
+      "properties": {
+        "newStatus": {
+          "$ref": "#/definitions/antifraudOperationStatus"
+        }
+      }
+    },
+    "antifraudOperationStatus": {
+      "type": "string",
+      "enum": [
+        "Unknown",
+        "Created",
+        "AntifraudCheck",
+        "Declined",
+        "Approved",
+        "Closed"
+      ],
+      "default": "Unknown",
+      "description": "OperationStatus - общий статус операции в банке. Разные системы переводят его в разный момент времени.\n\n - Declined: На деле, тут еще и может быть заложен челлендж"
+    },
+    "antifraudTransaction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64",
+          "title": "уникальный ключ"
+        },
+        "transactionId": {
+          "type": "string",
+          "title": "UUID транзакции из внешней системы"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "title": "дата и время операции, как передано источником"
+        },
+        "amount": {
+          "type": "string",
+          "format": "int64",
+          "title": "сумма транзакции"
+        },
+        "currency": {
+          "type": "string",
+          "title": "валюта (RUB / USD / EUR)"
+        },
+        "merchant": {
+          "type": "string",
+          "title": "название/идентификатор магазина/сервиса"
+        },
+        "country": {
+          "type": "string",
+          "title": "ISO-код страны (RU/US/CA)"
+        },
+        "senderId": {
+          "type": "string",
+          "title": "uuid отправителя"
+        },
+        "receiverId": {
+          "type": "string",
+          "title": "uuid получателя"
+        },
+        "bic": {
+          "type": "string",
+          "title": "bic банка получателя"
+        },
+        "atmId": {
+          "type": "string",
+          "title": "uuid банкомата"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

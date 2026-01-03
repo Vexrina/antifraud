@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package antifraud;
+
+option go_package = "./antifraud";
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+service OnlineCheck{
+    rpc Internal(Transaction) returns (CheckResult) {
+        option (google.api.http) = {
+            post: "/v1/internal"
+            body: "*"
+        };
+    }
+    rpc SbpOutgoing(Transaction) returns (CheckResult) {
+        option (google.api.http) = {
+            post: "/v1/sbp-outgoing"
+            body: "*"
+        };
+    }
+    rpc CashOut(Transaction) returns (CheckResult) {
+        option (google.api.http) = {
+            post: "/v1/cash-out"
+            body: "*"
+        };
+    } 
+}
+
+// OperationStatus - общий статус операции в банке. Разные системы переводят его в разный момент времени.
+enum OperationStatus {
+    Unknown = 0;
+    Created = 1;
+    AntifraudCheck = 2;
+    Declined = 3; // На деле, тут еще и может быть заложен челлендж
+    Approved = 4;
+    Closed = 5;
+}
+
+
+message Transaction{
+    // уникальный ключ
+    uint64 id = 1;
+    // UUID транзакции из внешней системы
+    string transaction_id = 2; 
+    // дата и время операции, как передано источником
+    google.protobuf.Timestamp created_at = 3;
+    // сумма транзакции
+    int64 amount = 4;
+    // валюта (RUB / USD / EUR)
+    string currency = 5;
+    // название/идентификатор магазина/сервиса
+    string merchant = 6;
+    // ISO-код страны (RU/US/CA)
+    string country = 7;
+    // uuid отправителя
+    string sender_id = 8;
+
+    // uuid получателя
+    optional string receiver_id = 9;
+    // bic банка получателя
+    string bic = 10;
+    // uuid банкомата
+    string atm_id = 11;
+}
+message CheckResult{
+    OperationStatus new_status = 1;
+}
