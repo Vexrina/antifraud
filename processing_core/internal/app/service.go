@@ -13,16 +13,16 @@ import (
 //go:generate mockgen -source=service.go -destination=./mocks/service_mock.go -package=mocks
 type (
 	SbpOutgoingOperations interface {
-		Process(ctx context.Context, domainRequest *desc.SbpOutgoingRequest) (*desc.SbpOutgoingResponse, error)
+		Process(ctx context.Context, domainRequest *model.SbpOutgoingDomainRequest) (*desc.SbpOutgoingResponse, error)
 	}
 	InternalOperations interface {
-		Process(ctx context.Context, domainRequest *desc.InternalRequest) (*desc.InternalResponse, error)
+		Process(ctx context.Context, domainRequest *model.InternalDomainRequest) (*desc.InternalResponse, error)
 	}
 	CashInOperations interface {
 		Process(ctx context.Context, domainRequest *model.CashInDomainRequest) (*desc.CashInResponse, error)
 	}
 	CashOutOperations interface {
-		Process(ctx context.Context, domainRequest *desc.CashOutRequest) (*desc.CashOutResponse, error)
+		Process(ctx context.Context, domainRequest *model.CashOutDomainRequest) (*desc.CashOutResponse, error)
 	}
 )
 

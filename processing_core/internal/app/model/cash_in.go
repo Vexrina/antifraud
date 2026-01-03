@@ -1,9 +1,9 @@
 package model
 
 import (
-	desc "processing_core/pkg/core"
-
 	"github.com/google/uuid"
+
+	desc "processing_core/pkg/core"
 )
 
 type CashInDomainRequest struct {

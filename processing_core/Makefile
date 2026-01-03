@@ -55,17 +55,19 @@ clean:
 jet: deps
 	jet -source=postgresql -host=localhost -port=5433 -user=proc_core_user -password=proc_core_pwd -dbname=proc_core_db -schema=public -path=generated/
 
-# PROTO_DIR=../float-weaver/api
-# PROTO_FILE=floatweaver.proto
-# OUT_DIR=./pkg/floatweaver
+PROTO_ROOT=../third_party/googleapis
+PROTO_DIR=../antifraud/api
+PROTO_FILE=antifraud.proto
+OUT_DIR=./pkg
 
-# gen-floatweaver:
-# 	mkdir -p $(OUT_DIR)
-# 	protoc \
-# 	  --proto_path=$(PROTO_DIR) \
-# 	  --go_out=$(OUT_DIR) \
-# 	  --go-grpc_out=$(OUT_DIR) \
-# 	  $(PROTO_DIR)/$(PROTO_FILE)
+gen-antifraud:
+	mkdir -p $(OUT_DIR)
+	protoc \
+		-I $(PROTO_DIR) \
+		-I $(PROTO_ROOT) \
+		--go_out=$(OUT_DIR) \
+		--go-grpc_out=$(OUT_DIR) \
+		$(PROTO_FILE)
 
 # Полная генерация (все зависимости + очистка + генерация)
 generate: clean deps proto swagger

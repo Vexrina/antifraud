@@ -17,18 +17,18 @@ type (
 		LockClient(ctx context.Context, tx pgx.Tx, clientID uuid.UUID) error
 	}
 
-	ClientRepo interface {
+	CashOutClientRepo interface {
 		GetCurrentBalanceTx(ctx context.Context, tx pgx.Tx, clientID uuid.UUID) (int64, error)
 		UpdateBalance(ctx context.Context, tx pgx.Tx, clientID uuid.UUID, newBalance int64) error
 	}
 
 	cashInUsecase struct {
 		commonRepo CommonRepo
-		clientRepo ClientRepo
+		clientRepo CashOutClientRepo
 	}
 )
 
-func NewCashInUsecase(commonRepo CommonRepo, clientRepo ClientRepo) *cashInUsecase {
+func NewCashInUsecase(commonRepo CommonRepo, clientRepo CashOutClientRepo) *cashInUsecase {
 	return &cashInUsecase{
 		commonRepo: commonRepo,
 		clientRepo: clientRepo,
