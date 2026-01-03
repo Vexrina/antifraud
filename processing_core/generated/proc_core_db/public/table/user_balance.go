@@ -17,8 +17,11 @@ type userBalanceTable struct {
 	postgres.Table
 
 	// Columns
-	ClientID postgres.ColumnString  // id пользака
-	Balance  postgres.ColumnInteger // кол-во денег на балансе
+	ClientID  postgres.ColumnString     // id пользака
+	Balance   postgres.ColumnInteger    // кол-во денег на балансе
+	Revision  postgres.ColumnInteger    // ревизия баланса
+	CreatedAt postgres.ColumnTimestampz // время первой инициализации баланса, по сути отражает когда пользак был проинициализирован в выпуски и доехал до ядра процессинга
+	UpdatedAt postgres.ColumnTimestampz // время обновления баланса
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -60,19 +63,25 @@ func newUserBalanceTable(schemaName, tableName, alias string) *UserBalanceTable 
 
 func newUserBalanceTableImpl(schemaName, tableName, alias string) userBalanceTable {
 	var (
-		ClientIDColumn = postgres.StringColumn("client_id")
-		BalanceColumn  = postgres.IntegerColumn("balance")
-		allColumns     = postgres.ColumnList{ClientIDColumn, BalanceColumn}
-		mutableColumns = postgres.ColumnList{ClientIDColumn, BalanceColumn}
-		defaultColumns = postgres.ColumnList{}
+		ClientIDColumn  = postgres.StringColumn("client_id")
+		BalanceColumn   = postgres.IntegerColumn("balance")
+		RevisionColumn  = postgres.IntegerColumn("revision")
+		CreatedAtColumn = postgres.TimestampzColumn("created_at")
+		UpdatedAtColumn = postgres.TimestampzColumn("updated_at")
+		allColumns      = postgres.ColumnList{ClientIDColumn, BalanceColumn, RevisionColumn, CreatedAtColumn, UpdatedAtColumn}
+		mutableColumns  = postgres.ColumnList{ClientIDColumn, BalanceColumn, RevisionColumn, CreatedAtColumn, UpdatedAtColumn}
+		defaultColumns  = postgres.ColumnList{RevisionColumn, CreatedAtColumn, UpdatedAtColumn}
 	)
 
 	return userBalanceTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ClientID: ClientIDColumn,
-		Balance:  BalanceColumn,
+		ClientID:  ClientIDColumn,
+		Balance:   BalanceColumn,
+		Revision:  RevisionColumn,
+		CreatedAt: CreatedAtColumn,
+		UpdatedAt: UpdatedAtColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

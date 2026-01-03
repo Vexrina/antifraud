@@ -9,9 +9,13 @@ package model
 
 import (
 	"github.com/google/uuid"
+	"time"
 )
 
 type UserBalance struct {
-	ClientID *uuid.UUID // id пользака
-	Balance  *int32     // кол-во денег на балансе
+	ClientID  *uuid.UUID // id пользака
+	Balance   *int64     // кол-во денег на балансе
+	Revision  int64      // ревизия баланса
+	CreatedAt *time.Time // время первой инициализации баланса, по сути отражает когда пользак был проинициализирован в выпуски и доехал до ядра процессинга
+	UpdatedAt *time.Time // время обновления баланса
 }

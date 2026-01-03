@@ -22,7 +22,7 @@ func (r *pgDb) RollBackUnlessCommitted(ctx context.Context, tx pgx.Tx) {
 	}
 
 	// if err != nil {
-		// logger.Errorf(ctx, "can't rollback transaction: %v", err)
+	// logger.Errorf(ctx, "can't rollback transaction: %v", err)
 	// }
 }
 
@@ -42,10 +42,7 @@ func (r *pgDb) CommitTx(ctx context.Context, tx pgx.Tx) error {
 }
 
 // Transactional – открывает транзакцию и выполняет функцию в ней.
-func (r *pgDb) Transactional(
-	ctx context.Context,
-	f func(tx pgx.Tx) error,
-) error {
+func (r *pgDb) Transactional(ctx context.Context, f func(tx pgx.Tx) error) error {
 	tx, err := r.BeginTx(ctx)
 	if err != nil {
 		return err
@@ -59,11 +56,7 @@ func (r *pgDb) Transactional(
 }
 
 // LockClient - делает блокировку для клиента, чтобы работать с ним в одном потоке
-func (r *pgDb) LockClient(
-	ctx context.Context,
-	tx pgx.Tx,
-	clientID uuid.UUID,
-) error {
+func (r *pgDb) LockClient(ctx context.Context, tx pgx.Tx, clientID uuid.UUID) error {
 	query := `SELECT pg_advisory_xact_lock($1)`
 
 	idHash, err := utils.Hash(clientID[:])
