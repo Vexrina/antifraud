@@ -52,8 +52,8 @@ clean:
 	@echo "Clean complete"
 
 # Генерация схем используя jet
-# jet: deps
-# 	jet -source=postgresql -host=localhost -port=5432 -user=processing_core_user -password=processing_core_password -dbname=processing_core_db -schema=public -path=generated/
+jet: deps
+	jet -source=postgresql -host=localhost -port=5433 -user=proc_core_user -password=proc_core_pwd -dbname=proc_core_db -schema=public -path=generated/
 
 # PROTO_DIR=../float-weaver/api
 # PROTO_FILE=floatweaver.proto

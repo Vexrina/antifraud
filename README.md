@@ -99,3 +99,27 @@ $ tree -L 1
 $ ls
 README.md  antifraud  chosen_theme.md  processing_core  quest.md  third_party
 ```
+
+vscode settings
+```json
+// settings.json
+{
+  "go.testEnvVars": {
+    "TEST_DB_CONNSTR": "postgres://proc_core_user:proc_core_pwd@localhost:5433/proc_core_db?sslmode=disable"
+  }
+}
+
+// launch.json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Go: Test Package",
+      "type": "go",
+      "request": "launch",
+      "mode": "test",
+      "program": "${fileDirname}"
+    }
+  ]
+}
+```
