@@ -1,0 +1,3 @@
+drop index transactions_history_sender_id_idx;
+
+drop index transactions_history_receiver_id_idx;

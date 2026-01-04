@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package kafka;
+
+option go_package = "./kafka_core";
+
+import "google/protobuf/timestamp.proto";
+
+enum TransactionType{
+  // Неизвестно
+  Unknown = 0;
+  // Внутренний перевод
+  Internal = 1;
+  // Внесение налички
+  CashIn = 2;
+  // Снятие нала
+  CashOut = 3;
+  // Перевод по сбп
+  SbpOutgoing = 4;
+}
+
+
+message TransactionCore {
+  // уникальный ключ
+  uint64 id = 1;
+  // UUID транзакции из внешней системы
+  string transaction_id = 2;
+  // дата и время операции, как передано источником
+  google.protobuf.Timestamp created_at = 3;
+  // сумма транзакции
+  int64 amount = 4;
+  // валюта (RUB / USD / EUR)
+  string currency = 5;
+  // название/идентификатор магазина/сервиса
+  string merchant = 6;
+  // ISO-код страны (RU/US/CA)
+  string country = 7;
+  // uuid отправителя
+  string sender_id = 8;
+  // uuid отправителя
+  optional string receiver_id = 9;
+  // bic банка получателя
+  optional string receiver_bic = 10;
+  // uuid банкомата
+  optional string atm_id = 11;
+  // тип транзакции
+  TransactionType transaction_type = 12;
+  // ревизия
+  int64 revision = 13;
+}

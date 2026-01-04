@@ -11,7 +11,7 @@ import (
 )
 
 // RollBackUnlessCommitted - роллбэк, если транзакция не закоммичена
-func (r *pgDb) RollBackUnlessCommitted(ctx context.Context, tx pgx.Tx) {
+func (db *pgDb) RollBackUnlessCommitted(ctx context.Context, tx pgx.Tx) {
 	if tx == nil {
 		return
 	}
@@ -27,8 +27,8 @@ func (r *pgDb) RollBackUnlessCommitted(ctx context.Context, tx pgx.Tx) {
 }
 
 // BeginTx - возвращает открытую транзакцию
-func (r *pgDb) BeginTx(ctx context.Context) (pgx.Tx, error) {
-	tx, err := r.conn.Begin(ctx)
+func (db *pgDb) BeginTx(ctx context.Context) (pgx.Tx, error) {
+	tx, err := db.conn.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("can't begin transaction, error: %w", err)
 	}
@@ -37,26 +37,26 @@ func (r *pgDb) BeginTx(ctx context.Context) (pgx.Tx, error) {
 }
 
 // CommitTx - коммитит транзакцию
-func (r *pgDb) CommitTx(ctx context.Context, tx pgx.Tx) error {
+func (db *pgDb) CommitTx(ctx context.Context, tx pgx.Tx) error {
 	return tx.Commit(ctx)
 }
 
 // Transactional – открывает транзакцию и выполняет функцию в ней.
-func (r *pgDb) Transactional(ctx context.Context, f func(tx pgx.Tx) error) error {
-	tx, err := r.BeginTx(ctx)
+func (db *pgDb) Transactional(ctx context.Context, f func(tx pgx.Tx) error) error {
+	tx, err := db.BeginTx(ctx)
 	if err != nil {
 		return err
 	}
-	defer r.RollBackUnlessCommitted(ctx, tx)
+	defer db.RollBackUnlessCommitted(ctx, tx)
 	err = f(tx)
 	if err == nil {
-		return r.CommitTx(ctx, tx)
+		return db.CommitTx(ctx, tx)
 	}
 	return err
 }
 
 // LockClient - делает блокировку для клиента, чтобы работать с ним в одном потоке
-func (r *pgDb) LockClient(ctx context.Context, tx pgx.Tx, clientID uuid.UUID) error {
+func (db *pgDb) LockClient(ctx context.Context, tx pgx.Tx, clientID uuid.UUID) error {
 	query := `SELECT pg_advisory_xact_lock($1)`
 
 	idHash, err := utils.Hash(clientID[:])

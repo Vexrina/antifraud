@@ -25,7 +25,13 @@ proto: deps
 	api/core.proto
 	@echo "Proto files generated"
 
-
+proto_kafka:
+	mkdir -p pkg/processing_core
+	protoc \
+		$(PROTO_INCLUDES) \
+		--go_out=pkg \
+		api/kafka.proto
+	@echo "Kafka Proto files generated"
 
 # Генерация swagger/openapi документации
 swagger: proto
@@ -70,5 +76,5 @@ gen-antifraud:
 		$(PROTO_FILE)
 
 # Полная генерация (все зависимости + очистка + генерация)
-generate: clean deps proto swagger
+generate: clean deps proto swagger proto_kafka antifraud jet
 	@echo "Full generation completed"

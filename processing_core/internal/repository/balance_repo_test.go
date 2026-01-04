@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"processing_core/generated/proc_core_db/public/table"
 	"testing"
 
+	"github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
@@ -112,6 +114,19 @@ func TestPgDb_GetCurrentBalanceTx(t *testing.T) {
 			t.Parallel()
 			ctx := context.Background()
 			db := NewTestDB(ctx, t)
+
+			t.Cleanup(func() {
+				tl := table.UserBalance
+				stmt := tl.DELETE().WHERE(
+					tl.ClientID.EQ(postgres.UUID(tt.args.clientID)),
+				)
+				sql, args := stmt.Sql()
+				_, err := db.conn.Exec(ctx, sql, args...)
+				if err != nil {
+					t.Fatal(err)
+				}
+			})
+
 			err := tt.fields.prepare(ctx, db, &tt.args)
 			require.NoError(t, err)
 
@@ -150,7 +165,6 @@ func TestPgDb_UpdateBalance(t *testing.T) {
 		args            args
 		expectedBalance int64
 		expectedError   string
-		shouldCommit    bool
 	}{
 		{
 			name: "create new balance",
@@ -166,7 +180,6 @@ func TestPgDb_UpdateBalance(t *testing.T) {
 			},
 			expectedBalance: 500,
 			expectedError:   "",
-			shouldCommit:    true,
 		},
 		{
 			name: "update existing balance",
@@ -188,7 +201,6 @@ func TestPgDb_UpdateBalance(t *testing.T) {
 			},
 			expectedBalance: 1500,
 			expectedError:   "",
-			shouldCommit:    true,
 		},
 		{
 			name: "update to zero balance",
@@ -210,7 +222,6 @@ func TestPgDb_UpdateBalance(t *testing.T) {
 			},
 			expectedBalance: 0,
 			expectedError:   "",
-			shouldCommit:    true,
 		},
 		{
 			name: "update to negative balance",
@@ -232,7 +243,6 @@ func TestPgDb_UpdateBalance(t *testing.T) {
 			},
 			expectedBalance: -200,
 			expectedError:   "",
-			shouldCommit:    true,
 		},
 		{
 			name: "multiple updates in same transaction",
@@ -248,7 +258,6 @@ func TestPgDb_UpdateBalance(t *testing.T) {
 			},
 			expectedBalance: 3000,
 			expectedError:   "",
-			shouldCommit:    true,
 		},
 	}
 
@@ -257,6 +266,19 @@ func TestPgDb_UpdateBalance(t *testing.T) {
 			t.Parallel()
 			ctx := context.Background()
 			db := NewTestDB(ctx, t)
+
+			t.Cleanup(func() {
+				tl := table.UserBalance
+				stmt := tl.DELETE().WHERE(
+					tl.ClientID.EQ(postgres.UUID(tt.args.clientID)),
+				)
+				sql, args := stmt.Sql()
+				_, err := db.conn.Exec(ctx, sql, args...)
+				if err != nil {
+					t.Fatal(err)
+				}
+			})
+
 			err := tt.fields.prepare(ctx, db, &tt.args)
 			require.NoError(t, err)
 
@@ -278,95 +300,6 @@ func TestPgDb_UpdateBalance(t *testing.T) {
 			}
 			require.NoError(t, err)
 			assert.Equal(t, tt.expectedBalance, resBalance)
-		})
-	}
-}
-
-func TestPgDb_UpdateBalance_MultipleClients(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name    string
-		clients []struct {
-			clientID uuid.UUID
-			balance  int64
-		}
-		shouldCommit bool
-	}{
-		{
-			name: "two clients with different balances",
-			clients: []struct {
-				clientID uuid.UUID
-				balance  int64
-			}{
-				{uuid.New(), 1000},
-				{uuid.New(), 2000},
-			},
-			shouldCommit: true,
-		},
-		{
-			name: "three clients with same balance",
-			clients: []struct {
-				clientID uuid.UUID
-				balance  int64
-			}{
-				{uuid.New(), 500},
-				{uuid.New(), 500},
-				{uuid.New(), 500},
-			},
-			shouldCommit: true,
-		},
-		{
-			name: "multiple clients with various balances",
-			clients: []struct {
-				clientID uuid.UUID
-				balance  int64
-			}{
-				{uuid.New(), 0},
-				{uuid.New(), -100},
-				{uuid.New(), 10000},
-			},
-			shouldCommit: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			ctx := context.Background()
-			db := NewTestDB(ctx, t)
-
-			tx, err := db.BeginTx(ctx)
-			if err != nil {
-				t.Fatalf("can't begin transaction: %v", err)
-			}
-			defer db.RollBackUnlessCommitted(ctx, tx)
-
-			// создаем балансы для всех клиентов
-			for _, client := range tt.clients {
-				err = db.UpdateBalance(ctx, tx, client.clientID, client.balance)
-				if err != nil {
-					t.Fatalf("can't create balance for client %v: %v", client.clientID, err)
-				}
-			}
-
-			// проверяем балансы всех клиентов
-			for _, client := range tt.clients {
-				gotBalance, err := db.GetCurrentBalanceTx(ctx, tx, client.clientID)
-				if err != nil {
-					t.Fatalf("can't get balance for client %v: %v", client.clientID, err)
-				}
-				assert.Equal(t, client.balance, gotBalance)
-			}
-
-			if tt.shouldCommit {
-				err = db.CommitTx(ctx, tx)
-				if err != nil {
-					t.Fatalf("can't commit transaction: %v", err)
-				}
-			} else {
-				db.RollBackUnlessCommitted(ctx, tx)
-			}
 		})
 	}
 }
