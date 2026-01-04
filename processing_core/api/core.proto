@@ -39,10 +39,9 @@ service Core{
 enum OperationStatus {
     Unknown = 0;
     Created = 1;
-    AntifraudCheck = 2;
-    Declined = 3; // На деле, тут еще и может быть заложен челлендж
-    Approved = 4;
-    Closed = 5;
+    Declined = 2; // На деле, тут еще и может быть заложен челлендж
+    Approved = 3;
+    Closed = 4; // реализованные системы не трогают данный статус
 }
 
 

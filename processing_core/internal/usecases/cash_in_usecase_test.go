@@ -23,7 +23,7 @@ func TestCashInUsecase_Process(t *testing.T) {
 		domainRequest *model.CashInDomainRequest
 	}
 	type fields struct {
-		setupMocks func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockClientRepo, args *args)
+		setupMocks func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockCashOutClientRepo, args *args)
 	}
 	tests := []struct {
 		name          string
@@ -35,7 +35,7 @@ func TestCashInUsecase_Process(t *testing.T) {
 		{
 			name: "success - process cash in",
 			fields: fields{
-				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockClientRepo, args *args) {
+				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockCashOutClientRepo, args *args) {
 					// настраиваем ожидания для методов внутри транзакции до вызова Transactional
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -74,7 +74,7 @@ func TestCashInUsecase_Process(t *testing.T) {
 		{
 			name: "error - LockClient fails",
 			fields: fields{
-				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockClientRepo, args *args) {
+				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockCashOutClientRepo, args *args) {
 					lockErr := errors.New("failed to lock client")
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -97,13 +97,15 @@ func TestCashInUsecase_Process(t *testing.T) {
 					AtmID: uuid.New(),
 				},
 			},
-			expectedResp:  nil,
+			expectedResp: &desc.CashInResponse{
+				NewStatus: desc.OperationStatus_Declined,
+			},
 			expectedError: "failed to lock client",
 		},
 		{
 			name: "error - GetCurrentBalanceTx fails",
 			fields: fields{
-				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockClientRepo, args *args) {
+				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockCashOutClientRepo, args *args) {
 					balanceErr := errors.New("failed to get balance")
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -129,13 +131,15 @@ func TestCashInUsecase_Process(t *testing.T) {
 					AtmID: uuid.New(),
 				},
 			},
-			expectedResp:  nil,
+			expectedResp: &desc.CashInResponse{
+				NewStatus: desc.OperationStatus_Declined,
+			},
 			expectedError: "failed to get balance",
 		},
 		{
 			name: "error - UpdateBalance fails",
 			fields: fields{
-				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockClientRepo, args *args) {
+				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockCashOutClientRepo, args *args) {
 					updateErr := errors.New("failed to update balance")
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -165,13 +169,15 @@ func TestCashInUsecase_Process(t *testing.T) {
 					AtmID: uuid.New(),
 				},
 			},
-			expectedResp:  nil,
+			expectedResp: &desc.CashInResponse{
+				NewStatus: desc.OperationStatus_Declined,
+			},
 			expectedError: "failed to update balance",
 		},
 		{
 			name: "success - zero initial balance",
 			fields: fields{
-				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockClientRepo, args *args) {
+				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockCashOutClientRepo, args *args) {
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
 						Return(nil)
@@ -208,7 +214,7 @@ func TestCashInUsecase_Process(t *testing.T) {
 		{
 			name: "success - negative initial balance",
 			fields: fields{
-				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockClientRepo, args *args) {
+				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockCashOutClientRepo, args *args) {
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
 						Return(nil)
@@ -247,11 +253,11 @@ func TestCashInUsecase_Process(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
 
 			commonRepo := mocks.NewMockCommonRepo(ctrl)
-			clientRepo := mocks.NewMockClientRepo(ctrl)
+			clientRepo := mocks.NewMockCashOutClientRepo(ctrl)
 
 			tt.fields.setupMocks(commonRepo, clientRepo, &tt.args)
 
@@ -262,7 +268,7 @@ func TestCashInUsecase_Process(t *testing.T) {
 			if tt.expectedError != "" {
 				require.Error(t, err)
 				assert.Equal(t, tt.expectedError, err.Error())
-				assert.Nil(t, resp)
+				assert.Equal(t, tt.expectedResp.NewStatus, resp.NewStatus)
 				return
 			}
 
@@ -271,4 +277,3 @@ func TestCashInUsecase_Process(t *testing.T) {
 		})
 	}
 }
-

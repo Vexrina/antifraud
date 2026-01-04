@@ -17,18 +17,18 @@ type (
 		LockClient(ctx context.Context, tx pgx.Tx, clientID uuid.UUID) error
 	}
 
-	CashOutClientRepo interface {
+	CashInClientRepo interface {
 		GetCurrentBalanceTx(ctx context.Context, tx pgx.Tx, clientID uuid.UUID) (int64, error)
 		UpdateBalance(ctx context.Context, tx pgx.Tx, clientID uuid.UUID, newBalance int64) error
 	}
 
 	cashInUsecase struct {
 		commonRepo CommonRepo
-		clientRepo CashOutClientRepo
+		clientRepo CashInClientRepo
 	}
 )
 
-func NewCashInUsecase(commonRepo CommonRepo, clientRepo CashOutClientRepo) *cashInUsecase {
+func NewCashInUsecase(commonRepo CommonRepo, clientRepo CashInClientRepo) *cashInUsecase {
 	return &cashInUsecase{
 		commonRepo: commonRepo,
 		clientRepo: clientRepo,
@@ -49,7 +49,9 @@ func (u *cashInUsecase) Process(ctx context.Context, domainRequest *model.CashIn
 		return u.clientRepo.UpdateBalance(ctx, tx, clientID, clientBalance+domainRequest.Transaction.Amount)
 	})
 	if err != nil {
-		return nil, err
+		return &desc.CashInResponse{
+			NewStatus: desc.OperationStatus_Declined,
+		}, err
 	}
 
 	return &desc.CashInResponse{

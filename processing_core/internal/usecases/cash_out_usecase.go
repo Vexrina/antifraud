@@ -12,53 +12,60 @@ import (
 	desc "processing_core/pkg/core"
 )
 
-//go:generate mockgen -source=internal_usecase.go -destination=./mocks/internal_usecase_mock.go -package=mocks
+//go:generate mockgen -source=cash_out_usecase.go -destination=./mocks/cash_out_usecase_mock.go -package=mocks
 type (
-	InternalClientRepo interface {
+	CashOutClientRepo interface {
 		GetCurrentBalanceTx(ctx context.Context, tx pgx.Tx, clientID uuid.UUID) (int64, error)
 		UpdateBalance(ctx context.Context, tx pgx.Tx, clientID uuid.UUID, newBalance int64) error
 
 		AddOperationToHistory(ctx context.Context, tx pgx.Tx, clientID uuid.UUID, operation model.Transaction) error
 	}
 
-	AntifraudInternalCheck interface {
-		InternalCheck(ctx context.Context, operation model.Transaction) error
+	AntifraudCashOutCheck interface {
+		CashOutCheck(ctx context.Context, operation model.Transaction) error
 	}
 
-	internalUsecase struct {
-		commonRepo CommonRepo
-		clientRepo InternalClientRepo
+	CashOutInterface interface {
+		// считаем что это асинхронщина, которая при падении в банкомате не даст списать деньги и если что их вернет на место физически.
+		GiveMoney(ctx context.Context, operation model.Transaction)
+	}
 
-		antifraud AntifraudInternalCheck
+	cashOutUsecase struct {
+		commonRepo CommonRepo
+		clientRepo CashOutClientRepo
+
+		antifraud AntifraudCashOutCheck
+		atm       CashOutInterface
 	}
 )
 
-func NewInternalUsecase(
+func NewCashOutUsecase(
 	commonRepo CommonRepo,
-	clientRepo InternalClientRepo,
-	af AntifraudInternalCheck,
-) *internalUsecase {
-	return &internalUsecase{
+	clientRepo CashOutClientRepo,
+	antifraud AntifraudCashOutCheck,
+	atm CashOutInterface,
+) *cashOutUsecase {
+	return &cashOutUsecase{
 		commonRepo: commonRepo,
 		clientRepo: clientRepo,
-		antifraud:  af,
+		antifraud:  antifraud,
+		atm:        atm,
 	}
 }
 
-func (u *internalUsecase) Process(ctx context.Context, domainRequest *model.InternalDomainRequest) (*desc.InternalResponse, error) {
+func (u *cashOutUsecase) Process(ctx context.Context, domainRequest *model.CashOutDomainRequest) (*desc.CashOutResponse, error) {
 	afCtx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 
-	err := u.antifraud.InternalCheck(afCtx, *domainRequest.Transaction)
+	err := u.antifraud.CashOutCheck(afCtx, *domainRequest.Transaction)
 	if err != nil {
-		return &desc.InternalResponse{
+		return &desc.CashOutResponse{
 			NewStatus: desc.OperationStatus_Declined,
 		}, err
 	}
 
 	err = u.commonRepo.Transactional(ctx, func(tx pgx.Tx) error {
 		sender := domainRequest.Transaction.SenderID
-		receiver := domainRequest.ReceiverId
 		amount := domainRequest.Transaction.Amount
 
 		txErr := u.commonRepo.LockClient(ctx, tx, sender)
@@ -66,14 +73,9 @@ func (u *internalUsecase) Process(ctx context.Context, domainRequest *model.Inte
 			return txErr
 		}
 
-		txErr = u.commonRepo.LockClient(ctx, tx, receiver)
-		if txErr != nil {
-			return txErr
-		}
-
 		senderBalance, txErr := u.clientRepo.GetCurrentBalanceTx(ctx, tx, sender)
 		if txErr != nil {
-			return txErr
+			return nil
 		}
 		if senderBalance < amount {
 			return fmt.Errorf("LIMIT OVERFLOW")
@@ -83,28 +85,22 @@ func (u *internalUsecase) Process(ctx context.Context, domainRequest *model.Inte
 			return txErr
 		}
 
-		receiverBalance, txErr := u.clientRepo.GetCurrentBalanceTx(ctx, tx, receiver)
-		if txErr != nil {
-			return txErr
-		}
-		txErr = u.clientRepo.UpdateBalance(ctx, tx, receiver, receiverBalance+amount)
-		if txErr != nil {
-			return txErr
-		}
-
-		txErr = u.clientRepo.AddOperationToHistory(ctx, tx, receiver, *domainRequest.Transaction)
+		txErr = u.clientRepo.AddOperationToHistory(ctx, tx, uuid.Nil, *domainRequest.Transaction)
 		if txErr != nil {
 			return txErr
 		}
 		return nil
 	})
 	if err != nil {
-		return &desc.InternalResponse{
+		return &desc.CashOutResponse{
 			NewStatus: desc.OperationStatus_Declined,
 		}, err
 	}
 
-	return &desc.InternalResponse{
+	u.atm.GiveMoney(ctx, *domainRequest.Transaction)
+
+	return &desc.CashOutResponse{
 		NewStatus: desc.OperationStatus_Approved,
 	}, nil
+
 }

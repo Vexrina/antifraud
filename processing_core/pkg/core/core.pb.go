@@ -27,12 +27,11 @@ const (
 type OperationStatus int32
 
 const (
-	OperationStatus_Unknown        OperationStatus = 0
-	OperationStatus_Created        OperationStatus = 1
-	OperationStatus_AntifraudCheck OperationStatus = 2
-	OperationStatus_Declined       OperationStatus = 3 // На деле, тут еще и может быть заложен челлендж
-	OperationStatus_Approved       OperationStatus = 4
-	OperationStatus_Closed         OperationStatus = 5
+	OperationStatus_Unknown  OperationStatus = 0
+	OperationStatus_Created  OperationStatus = 1
+	OperationStatus_Declined OperationStatus = 2 // На деле, тут еще и может быть заложен челлендж
+	OperationStatus_Approved OperationStatus = 3
+	OperationStatus_Closed   OperationStatus = 4 // реализованные системы не трогают данный статус
 )
 
 // Enum value maps for OperationStatus.
@@ -40,18 +39,16 @@ var (
 	OperationStatus_name = map[int32]string{
 		0: "Unknown",
 		1: "Created",
-		2: "AntifraudCheck",
-		3: "Declined",
-		4: "Approved",
-		5: "Closed",
+		2: "Declined",
+		3: "Approved",
+		4: "Closed",
 	}
 	OperationStatus_value = map[string]int32{
-		"Unknown":        0,
-		"Created":        1,
-		"AntifraudCheck": 2,
-		"Declined":       3,
-		"Approved":       4,
-		"Closed":         5,
+		"Unknown":  0,
+		"Created":  1,
+		"Declined": 2,
+		"Approved": 3,
+		"Closed":   4,
 	}
 )
 
@@ -673,15 +670,14 @@ const file_core_proto_rawDesc = "" +
 	"\x06atm_id\x18\x03 \x01(\tR\x05atmId\"G\n" +
 	"\x0fCashOutResponse\x124\n" +
 	"\n" +
-	"new_status\x18\x01 \x01(\x0e2\x15.core.OperationStatusR\tnewStatus*g\n" +
+	"new_status\x18\x01 \x01(\x0e2\x15.core.OperationStatusR\tnewStatus*S\n" +
 	"\x0fOperationStatus\x12\v\n" +
 	"\aUnknown\x10\x00\x12\v\n" +
-	"\aCreated\x10\x01\x12\x12\n" +
-	"\x0eAntifraudCheck\x10\x02\x12\f\n" +
-	"\bDeclined\x10\x03\x12\f\n" +
-	"\bApproved\x10\x04\x12\n" +
+	"\aCreated\x10\x01\x12\f\n" +
+	"\bDeclined\x10\x02\x12\f\n" +
+	"\bApproved\x10\x03\x12\n" +
 	"\n" +
-	"\x06Closed\x10\x052\xd9\x02\n" +
+	"\x06Closed\x10\x042\xd9\x02\n" +
 	"\x04Core\x12R\n" +
 	"\bInternal\x12\x15.core.InternalRequest\x1a\x16.core.InternalResponse\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/v1/internal\x12_\n" +
 	"\vSbpOutgoing\x12\x18.core.SbpOutgoingRequest\x1a\x19.core.SbpOutgoingResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/sbp-outgoing\x12K\n" +

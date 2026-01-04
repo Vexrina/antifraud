@@ -70,32 +70,32 @@ func (mr *MockCommonRepoMockRecorder) Transactional(ctx, f any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Transactional", reflect.TypeOf((*MockCommonRepo)(nil).Transactional), ctx, f)
 }
 
-// MockClientRepo is a mock of ClientRepo interface.
-type MockClientRepo struct {
+// MockCashInClientRepo is a mock of CashInClientRepo interface.
+type MockCashInClientRepo struct {
 	ctrl     *gomock.Controller
-	recorder *MockClientRepoMockRecorder
+	recorder *MockCashInClientRepoMockRecorder
 	isgomock struct{}
 }
 
-// MockClientRepoMockRecorder is the mock recorder for MockClientRepo.
-type MockClientRepoMockRecorder struct {
-	mock *MockClientRepo
+// MockCashInClientRepoMockRecorder is the mock recorder for MockCashInClientRepo.
+type MockCashInClientRepoMockRecorder struct {
+	mock *MockCashInClientRepo
 }
 
-// NewMockClientRepo creates a new mock instance.
-func NewMockClientRepo(ctrl *gomock.Controller) *MockClientRepo {
-	mock := &MockClientRepo{ctrl: ctrl}
-	mock.recorder = &MockClientRepoMockRecorder{mock}
+// NewMockCashInClientRepo creates a new mock instance.
+func NewMockCashInClientRepo(ctrl *gomock.Controller) *MockCashInClientRepo {
+	mock := &MockCashInClientRepo{ctrl: ctrl}
+	mock.recorder = &MockCashInClientRepoMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockClientRepo) EXPECT() *MockClientRepoMockRecorder {
+func (m *MockCashInClientRepo) EXPECT() *MockCashInClientRepoMockRecorder {
 	return m.recorder
 }
 
 // GetCurrentBalanceTx mocks base method.
-func (m *MockClientRepo) GetCurrentBalanceTx(ctx context.Context, tx pgx.Tx, clientID uuid.UUID) (int64, error) {
+func (m *MockCashInClientRepo) GetCurrentBalanceTx(ctx context.Context, tx pgx.Tx, clientID uuid.UUID) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCurrentBalanceTx", ctx, tx, clientID)
 	ret0, _ := ret[0].(int64)
@@ -104,13 +104,13 @@ func (m *MockClientRepo) GetCurrentBalanceTx(ctx context.Context, tx pgx.Tx, cli
 }
 
 // GetCurrentBalanceTx indicates an expected call of GetCurrentBalanceTx.
-func (mr *MockClientRepoMockRecorder) GetCurrentBalanceTx(ctx, tx, clientID any) *gomock.Call {
+func (mr *MockCashInClientRepoMockRecorder) GetCurrentBalanceTx(ctx, tx, clientID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentBalanceTx", reflect.TypeOf((*MockClientRepo)(nil).GetCurrentBalanceTx), ctx, tx, clientID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentBalanceTx", reflect.TypeOf((*MockCashInClientRepo)(nil).GetCurrentBalanceTx), ctx, tx, clientID)
 }
 
 // UpdateBalance mocks base method.
-func (m *MockClientRepo) UpdateBalance(ctx context.Context, tx pgx.Tx, clientID uuid.UUID, newBalance int64) error {
+func (m *MockCashInClientRepo) UpdateBalance(ctx context.Context, tx pgx.Tx, clientID uuid.UUID, newBalance int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateBalance", ctx, tx, clientID, newBalance)
 	ret0, _ := ret[0].(error)
@@ -118,7 +118,7 @@ func (m *MockClientRepo) UpdateBalance(ctx context.Context, tx pgx.Tx, clientID 
 }
 
 // UpdateBalance indicates an expected call of UpdateBalance.
-func (mr *MockClientRepoMockRecorder) UpdateBalance(ctx, tx, clientID, newBalance any) *gomock.Call {
+func (mr *MockCashInClientRepoMockRecorder) UpdateBalance(ctx, tx, clientID, newBalance any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBalance", reflect.TypeOf((*MockClientRepo)(nil).UpdateBalance), ctx, tx, clientID, newBalance)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBalance", reflect.TypeOf((*MockCashInClientRepo)(nil).UpdateBalance), ctx, tx, clientID, newBalance)
 }
