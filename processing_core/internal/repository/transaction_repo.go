@@ -154,7 +154,6 @@ func (db *pgDb) GetTransactions(ctx context.Context, tx pgx.Tx, filter Transacti
 	if err != nil {
 		return nil, fmt.Errorf("can't get transactions: %w", err)
 	}
-	defer rows.Close()
 
 	transactions, err := pgx.CollectRows(rows, pgx.RowToStructByName[model.TransactionsHistory])
 	if err != nil {

@@ -11,7 +11,8 @@ package mocks
 
 import (
 	context "context"
-	model "processing_core/internal/app/model"
+	model "processing_core/generated/proc_core_db/public/model"
+	model0 "processing_core/internal/app/model"
 	reflect "reflect"
 
 	uuid "github.com/google/uuid"
@@ -43,20 +44,6 @@ func (m *MockSbpOutgoingClientRepo) EXPECT() *MockSbpOutgoingClientRepoMockRecor
 	return m.recorder
 }
 
-// AddOperationToHistory mocks base method.
-func (m *MockSbpOutgoingClientRepo) AddOperationToHistory(ctx context.Context, tx pgx.Tx, clientID uuid.UUID, operation model.Transaction) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddOperationToHistory", ctx, tx, clientID, operation)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// AddOperationToHistory indicates an expected call of AddOperationToHistory.
-func (mr *MockSbpOutgoingClientRepoMockRecorder) AddOperationToHistory(ctx, tx, clientID, operation any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOperationToHistory", reflect.TypeOf((*MockSbpOutgoingClientRepo)(nil).AddOperationToHistory), ctx, tx, clientID, operation)
-}
-
 // GetCurrentBalanceTx mocks base method.
 func (m *MockSbpOutgoingClientRepo) GetCurrentBalanceTx(ctx context.Context, tx pgx.Tx, clientID uuid.UUID) (int64, error) {
 	m.ctrl.T.Helper()
@@ -86,6 +73,20 @@ func (mr *MockSbpOutgoingClientRepoMockRecorder) UpdateBalance(ctx, tx, clientID
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBalance", reflect.TypeOf((*MockSbpOutgoingClientRepo)(nil).UpdateBalance), ctx, tx, clientID, newBalance)
 }
 
+// UpsertTransaction mocks base method.
+func (m *MockSbpOutgoingClientRepo) UpsertTransaction(ctx context.Context, tx pgx.Tx, transaction model.TransactionsHistory) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpsertTransaction", ctx, tx, transaction)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpsertTransaction indicates an expected call of UpsertTransaction.
+func (mr *MockSbpOutgoingClientRepoMockRecorder) UpsertTransaction(ctx, tx, transaction any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertTransaction", reflect.TypeOf((*MockSbpOutgoingClientRepo)(nil).UpsertTransaction), ctx, tx, transaction)
+}
+
 // MockAntifraudSbpOutgoingCheck is a mock of AntifraudSbpOutgoingCheck interface.
 type MockAntifraudSbpOutgoingCheck struct {
 	ctrl     *gomock.Controller
@@ -111,7 +112,7 @@ func (m *MockAntifraudSbpOutgoingCheck) EXPECT() *MockAntifraudSbpOutgoingCheckM
 }
 
 // SbpOutgoingCheck mocks base method.
-func (m *MockAntifraudSbpOutgoingCheck) SbpOutgoingCheck(ctx context.Context, operation model.Transaction) error {
+func (m *MockAntifraudSbpOutgoingCheck) SbpOutgoingCheck(ctx context.Context, operation *model0.SbpOutgoingDomainRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SbpOutgoingCheck", ctx, operation)
 	ret0, _ := ret[0].(error)
@@ -149,7 +150,7 @@ func (m *MockSbpIntegrationInterface) EXPECT() *MockSbpIntegrationInterfaceMockR
 }
 
 // ToAnotherBank mocks base method.
-func (m *MockSbpIntegrationInterface) ToAnotherBank(ctx context.Context, operation model.Transaction) {
+func (m *MockSbpIntegrationInterface) ToAnotherBank(ctx context.Context, operation model0.Transaction) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ToAnotherBank", ctx, operation)
 }

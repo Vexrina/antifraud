@@ -12,6 +12,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"processing_core/internal/app/model"
+	"processing_core/internal/repository"
 	"processing_core/internal/usecases/mocks"
 	desc "processing_core/pkg/core"
 )
@@ -46,6 +47,9 @@ func TestCashInUsecase_Process(t *testing.T) {
 					expectedBalance := int64(1000) + args.domainRequest.Transaction.Amount
 					clientRepo.EXPECT().
 						UpdateBalance(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID, expectedBalance).
+						Return(nil)
+					clientRepo.EXPECT().
+						UpsertTransaction(gomock.Any(), gomock.Any(), repository.MapCashInDomainToTransaction(*args.domainRequest)).
 						Return(nil)
 					commonRepo.EXPECT().
 						Transactional(gomock.Any(), gomock.Any()).
@@ -188,6 +192,9 @@ func TestCashInUsecase_Process(t *testing.T) {
 					clientRepo.EXPECT().
 						UpdateBalance(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID, expectedBalance).
 						Return(nil)
+					clientRepo.EXPECT().
+						UpsertTransaction(gomock.Any(), gomock.Any(), repository.MapCashInDomainToTransaction(*args.domainRequest)).
+						Return(nil)
 					commonRepo.EXPECT().
 						Transactional(gomock.Any(), gomock.Any()).
 						DoAndReturn(func(ctx context.Context, f func(tx pgx.Tx) error) error {
@@ -225,6 +232,9 @@ func TestCashInUsecase_Process(t *testing.T) {
 					clientRepo.EXPECT().
 						UpdateBalance(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID, expectedBalance).
 						Return(nil)
+					clientRepo.EXPECT().
+						UpsertTransaction(gomock.Any(), gomock.Any(), repository.MapCashInDomainToTransaction(*args.domainRequest)).
+						Return(nil)
 					commonRepo.EXPECT().
 						Transactional(gomock.Any(), gomock.Any()).
 						DoAndReturn(func(ctx context.Context, f func(tx pgx.Tx) error) error {
@@ -247,6 +257,46 @@ func TestCashInUsecase_Process(t *testing.T) {
 				NewStatus: desc.OperationStatus_Approved,
 			},
 			expectedError: "",
+		},
+		{
+			name: "error - upsert fails",
+			fields: fields{
+				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockCashOutClientRepo, args *args) {
+					commonRepo.EXPECT().
+						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
+						Return(nil)
+					clientRepo.EXPECT().
+						GetCurrentBalanceTx(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
+						Return(int64(-500), nil)
+					expectedBalance := int64(-500) + args.domainRequest.Transaction.Amount
+					clientRepo.EXPECT().
+						UpdateBalance(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID, expectedBalance).
+						Return(nil)
+					clientRepo.EXPECT().
+						UpsertTransaction(gomock.Any(), gomock.Any(), repository.MapCashInDomainToTransaction(*args.domainRequest)).
+						Return(errors.New("upsert fail"))
+					commonRepo.EXPECT().
+						Transactional(gomock.Any(), gomock.Any()).
+						DoAndReturn(func(ctx context.Context, f func(tx pgx.Tx) error) error {
+							return f(nil)
+						})
+				},
+			},
+			args: args{
+				domainRequest: &model.CashInDomainRequest{
+					ID: uuid.New(),
+					Transaction: model.Transaction{
+						ID:       1,
+						Amount:   1000,
+						SenderID: uuid.New(),
+					},
+					AtmID: uuid.New(),
+				},
+			},
+			expectedResp: &desc.CashInResponse{
+				NewStatus: desc.OperationStatus_Declined,
+			},
+			expectedError: "upsert fail",
 		},
 	}
 

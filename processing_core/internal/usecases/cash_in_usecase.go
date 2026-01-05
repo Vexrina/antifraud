@@ -6,7 +6,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	dbModel "processing_core/generated/proc_core_db/public/model"
 	"processing_core/internal/app/model"
+	"processing_core/internal/repository"
 	desc "processing_core/pkg/core"
 )
 
@@ -20,6 +22,7 @@ type (
 	CashInClientRepo interface {
 		GetCurrentBalanceTx(ctx context.Context, tx pgx.Tx, clientID uuid.UUID) (int64, error)
 		UpdateBalance(ctx context.Context, tx pgx.Tx, clientID uuid.UUID, newBalance int64) error
+		UpsertTransaction(ctx context.Context, tx pgx.Tx, transaction dbModel.TransactionsHistory) error
 	}
 
 	cashInUsecase struct {
@@ -42,11 +45,26 @@ func (u *cashInUsecase) Process(ctx context.Context, domainRequest *model.CashIn
 		if txErr != nil {
 			return txErr
 		}
+
 		clientBalance, txErr := u.clientRepo.GetCurrentBalanceTx(ctx, tx, clientID)
 		if txErr != nil {
 			return txErr
 		}
-		return u.clientRepo.UpdateBalance(ctx, tx, clientID, clientBalance+domainRequest.Transaction.Amount)
+
+		txErr = u.clientRepo.UpdateBalance(ctx, tx, clientID, clientBalance+domainRequest.Transaction.Amount)
+		if txErr != nil {
+			return txErr
+		}
+
+		txErr = u.clientRepo.UpsertTransaction(
+			ctx,
+			tx,
+			repository.MapCashInDomainToTransaction(*domainRequest),
+		)
+		if txErr != nil {
+			return txErr
+		}
+		return nil
 	})
 	if err != nil {
 		return &desc.CashInResponse{

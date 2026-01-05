@@ -2,13 +2,16 @@ package usecases
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	dbModel "processing_core/generated/proc_core_db/public/model"
 	"processing_core/internal/app/model"
+	"processing_core/internal/repository"
 	desc "processing_core/pkg/core"
 )
 
@@ -18,11 +21,11 @@ type (
 		GetCurrentBalanceTx(ctx context.Context, tx pgx.Tx, clientID uuid.UUID) (int64, error)
 		UpdateBalance(ctx context.Context, tx pgx.Tx, clientID uuid.UUID, newBalance int64) error
 
-		AddOperationToHistory(ctx context.Context, tx pgx.Tx, clientID uuid.UUID, operation model.Transaction) error
+		UpsertTransaction(ctx context.Context, tx pgx.Tx, transaction dbModel.TransactionsHistory) error
 	}
 
 	AntifraudSbpOutgoingCheck interface {
-		SbpOutgoingCheck(ctx context.Context, operation model.Transaction) error
+		SbpOutgoingCheck(ctx context.Context, operation *model.SbpOutgoingDomainRequest) error
 	}
 
 	SbpIntegrationInterface interface {
@@ -57,8 +60,9 @@ func (u *sbpOutgoingUsecase) Process(ctx context.Context, domainRequest *model.S
 	afCtx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 
-	err := u.antifraud.SbpOutgoingCheck(afCtx, *domainRequest.Transaction)
-	if err != nil {
+	err := u.antifraud.SbpOutgoingCheck(afCtx, domainRequest)
+	// пришла ошибка из антифрода и это НЕ отмена контекста
+	if err != nil && !(errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled)) {
 		return &desc.SbpOutgoingResponse{
 			NewStatus: desc.OperationStatus_Declined,
 		}, err
@@ -84,7 +88,7 @@ func (u *sbpOutgoingUsecase) Process(ctx context.Context, domainRequest *model.S
 		if txErr != nil {
 			return txErr
 		}
-		txErr = u.clientRepo.AddOperationToHistory(ctx, tx, uuid.Nil, *domainRequest.Transaction)
+		txErr = u.clientRepo.UpsertTransaction(ctx, tx, repository.MapSbpOutgoingDomainToTransaction(*domainRequest))
 		if txErr != nil {
 			return txErr
 		}

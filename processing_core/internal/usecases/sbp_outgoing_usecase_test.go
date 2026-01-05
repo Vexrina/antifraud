@@ -12,6 +12,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"processing_core/internal/app/model"
+	"processing_core/internal/repository"
 	"processing_core/internal/usecases/mocks"
 	desc "processing_core/pkg/core"
 )
@@ -37,7 +38,7 @@ func TestSbpOutgoingUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockSbpOutgoingClientRepo, antifraud *mocks.MockAntifraudSbpOutgoingCheck, sbpIntegration *mocks.MockSbpIntegrationInterface, args *args) {
 					antifraud.EXPECT().
-						SbpOutgoingCheck(gomock.Any(), *args.domainRequest.Transaction).
+						SbpOutgoingCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -50,7 +51,7 @@ func TestSbpOutgoingUsecase_Process(t *testing.T) {
 						UpdateBalance(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID, senderNewBalance).
 						Return(nil)
 					clientRepo.EXPECT().
-						AddOperationToHistory(gomock.Any(), gomock.Any(), uuid.Nil, *args.domainRequest.Transaction).
+						UpsertTransaction(gomock.Any(), gomock.Any(), repository.MapSbpOutgoingDomainToTransaction(*args.domainRequest)).
 						Return(nil)
 					commonRepo.EXPECT().
 						Transactional(gomock.Any(), gomock.Any()).
@@ -84,7 +85,7 @@ func TestSbpOutgoingUsecase_Process(t *testing.T) {
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockSbpOutgoingClientRepo, antifraud *mocks.MockAntifraudSbpOutgoingCheck, sbpIntegration *mocks.MockSbpIntegrationInterface, args *args) {
 					antifraudErr := errors.New("antifraud check failed")
 					antifraud.EXPECT().
-						SbpOutgoingCheck(gomock.Any(), *args.domainRequest.Transaction).
+						SbpOutgoingCheck(gomock.Any(), args.domainRequest).
 						Return(antifraudErr)
 				},
 			},
@@ -110,7 +111,7 @@ func TestSbpOutgoingUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockSbpOutgoingClientRepo, antifraud *mocks.MockAntifraudSbpOutgoingCheck, sbpIntegration *mocks.MockSbpIntegrationInterface, args *args) {
 					antifraud.EXPECT().
-						SbpOutgoingCheck(gomock.Any(), *args.domainRequest.Transaction).
+						SbpOutgoingCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					lockErr := errors.New("failed to lock client")
 					commonRepo.EXPECT().
@@ -145,7 +146,7 @@ func TestSbpOutgoingUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockSbpOutgoingClientRepo, antifraud *mocks.MockAntifraudSbpOutgoingCheck, sbpIntegration *mocks.MockSbpIntegrationInterface, args *args) {
 					antifraud.EXPECT().
-						SbpOutgoingCheck(gomock.Any(), *args.domainRequest.Transaction).
+						SbpOutgoingCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -184,7 +185,7 @@ func TestSbpOutgoingUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockSbpOutgoingClientRepo, antifraud *mocks.MockAntifraudSbpOutgoingCheck, sbpIntegration *mocks.MockSbpIntegrationInterface, args *args) {
 					antifraud.EXPECT().
-						SbpOutgoingCheck(gomock.Any(), *args.domainRequest.Transaction).
+						SbpOutgoingCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -222,7 +223,7 @@ func TestSbpOutgoingUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockSbpOutgoingClientRepo, antifraud *mocks.MockAntifraudSbpOutgoingCheck, sbpIntegration *mocks.MockSbpIntegrationInterface, args *args) {
 					antifraud.EXPECT().
-						SbpOutgoingCheck(gomock.Any(), *args.domainRequest.Transaction).
+						SbpOutgoingCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -264,7 +265,7 @@ func TestSbpOutgoingUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockSbpOutgoingClientRepo, antifraud *mocks.MockAntifraudSbpOutgoingCheck, sbpIntegration *mocks.MockSbpIntegrationInterface, args *args) {
 					antifraud.EXPECT().
-						SbpOutgoingCheck(gomock.Any(), *args.domainRequest.Transaction).
+						SbpOutgoingCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -278,7 +279,7 @@ func TestSbpOutgoingUsecase_Process(t *testing.T) {
 						Return(nil)
 					historyErr := errors.New("failed to add operation to history")
 					clientRepo.EXPECT().
-						AddOperationToHistory(gomock.Any(), gomock.Any(), uuid.Nil, *args.domainRequest.Transaction).
+						UpsertTransaction(gomock.Any(), gomock.Any(), repository.MapSbpOutgoingDomainToTransaction(*args.domainRequest)).
 						Return(historyErr)
 					commonRepo.EXPECT().
 						Transactional(gomock.Any(), gomock.Any()).

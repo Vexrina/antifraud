@@ -100,9 +100,9 @@ type Transaction struct {
 	// uuid получателя
 	ReceiverId *string `protobuf:"bytes,9,opt,name=receiver_id,json=receiverId,proto3,oneof" json:"receiver_id,omitempty"`
 	// bic банка получателя
-	Bic string `protobuf:"bytes,10,opt,name=bic,proto3" json:"bic,omitempty"`
+	Bic *string `protobuf:"bytes,10,opt,name=bic,proto3,oneof" json:"bic,omitempty"`
 	// uuid банкомата
-	AtmId         string `protobuf:"bytes,11,opt,name=atm_id,json=atmId,proto3" json:"atm_id,omitempty"`
+	AtmId         *string `protobuf:"bytes,11,opt,name=atm_id,json=atmId,proto3,oneof" json:"atm_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -201,15 +201,15 @@ func (x *Transaction) GetReceiverId() string {
 }
 
 func (x *Transaction) GetBic() string {
-	if x != nil {
-		return x.Bic
+	if x != nil && x.Bic != nil {
+		return *x.Bic
 	}
 	return ""
 }
 
 func (x *Transaction) GetAtmId() string {
-	if x != nil {
-		return x.AtmId
+	if x != nil && x.AtmId != nil {
+		return *x.AtmId
 	}
 	return ""
 }
@@ -262,7 +262,7 @@ var File_antifraud_proto protoreflect.FileDescriptor
 
 const file_antifraud_proto_rawDesc = "" +
 	"\n" +
-	"\x0fantifraud.proto\x12\tantifraud\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"\xe5\x02\n" +
+	"\x0fantifraud.proto\x12\tantifraud\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"\x82\x03\n" +
 	"\vTransaction\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12%\n" +
 	"\x0etransaction_id\x18\x02 \x01(\tR\rtransactionId\x129\n" +
@@ -274,11 +274,13 @@ const file_antifraud_proto_rawDesc = "" +
 	"\acountry\x18\a \x01(\tR\acountry\x12\x1b\n" +
 	"\tsender_id\x18\b \x01(\tR\bsenderId\x12$\n" +
 	"\vreceiver_id\x18\t \x01(\tH\x00R\n" +
-	"receiverId\x88\x01\x01\x12\x10\n" +
+	"receiverId\x88\x01\x01\x12\x15\n" +
 	"\x03bic\x18\n" +
-	" \x01(\tR\x03bic\x12\x15\n" +
-	"\x06atm_id\x18\v \x01(\tR\x05atmIdB\x0e\n" +
-	"\f_receiver_id\"H\n" +
+	" \x01(\tH\x01R\x03bic\x88\x01\x01\x12\x1a\n" +
+	"\x06atm_id\x18\v \x01(\tH\x02R\x05atmId\x88\x01\x01B\x0e\n" +
+	"\f_receiver_idB\x06\n" +
+	"\x04_bicB\t\n" +
+	"\a_atm_id\"H\n" +
 	"\vCheckResult\x129\n" +
 	"\n" +
 	"new_status\x18\x01 \x01(\x0e2\x1a.antifraud.OperationStatusR\tnewStatus*S\n" +

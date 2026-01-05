@@ -9,32 +9,34 @@ import (
 	"processing_core/generated/proc_core_db/public/model"
 )
 
-const (
-	KafkaOutboxTopic_Unknown     = "unknown"
-	KafkaOutboxTopic_Transaction = "best_bank_transactions"
-)
+const TransactionTopic = "best_bank_transactions"
 
+//go:generate mockgen -source=outbox.go -destination=./mocks/publisher.go -package=mocks
 type (
-	OutboxPublisher interface {
-		Run(ctx context.Context) error
-		Publish(ctx context.Context) error
-	}
 	KafkaProducer interface {
 		Produce(ctx context.Context, outbox []model.Outbox) ([]int64, error)
 	}
 	CommonDb interface {
 		Transactional(ctx context.Context, f func(tx pgx.Tx) error) error
 	}
-	OutboxDb interface {
-		GetUnpublisedMessages(ctx context.Context) ([]model.Outbox, error)
-		MarkMessagesAsProcessed(ctx context.Context, id []int64) error
+	KafkaDb interface {
+		GetUnpublishedMessages(ctx context.Context, tx pgx.Tx) ([]model.Outbox, error)
+		MarkMessagesAsProcessed(ctx context.Context, tx pgx.Tx, ids []int64) error
 	}
 	KafkaOutboxPublisher struct {
-		db       OutboxDb
+		db       KafkaDb
 		commonDb CommonDb
 		producer KafkaProducer
 	}
 )
+
+func NewKafkaOutboxPublisher(db KafkaDb, commonDb CommonDb, producer KafkaProducer) *KafkaOutboxPublisher {
+	return &KafkaOutboxPublisher{
+		db:       db,
+		commonDb: commonDb,
+		producer: producer,
+	}
+}
 
 func (p *KafkaOutboxPublisher) Run(ctx context.Context) error {
 	ticker := time.NewTicker(500 * time.Millisecond)
@@ -55,7 +57,15 @@ func (p *KafkaOutboxPublisher) Run(ctx context.Context) error {
 }
 
 func (p *KafkaOutboxPublisher) Publish(ctx context.Context) error {
-	msgs, err := p.db.GetUnpublisedMessages(ctx)
+	var (
+		msgs  []model.Outbox
+		txErr error
+		err   error
+	)
+	err = p.commonDb.Transactional(ctx, func(tx pgx.Tx) error {
+		msgs, txErr = p.db.GetUnpublishedMessages(ctx, tx)
+		return txErr
+	})
 	if err != nil {
 		return err
 	}
@@ -69,15 +79,15 @@ func (p *KafkaOutboxPublisher) Publish(ctx context.Context) error {
 	}
 
 	err = p.commonDb.Transactional(ctx, func(tx pgx.Tx) error {
-		txErr := p.db.MarkMessagesAsProcessed(ctx, processedIDs)
+		txErr = p.db.MarkMessagesAsProcessed(ctx, tx, processedIDs)
 		if txErr != nil {
 			return txErr
 		}
 		return nil
 	})
-
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

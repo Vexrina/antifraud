@@ -14,7 +14,7 @@ type Transaction struct {
 	TransactionID uuid.UUID
 	CreatedAt     *time.Time
 	Amount        int64
-	Currency      string
+	Currency      int32
 	Merchant      string
 	Country       string
 	SenderID      uuid.UUID

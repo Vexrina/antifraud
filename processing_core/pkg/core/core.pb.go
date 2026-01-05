@@ -90,7 +90,7 @@ type Transaction struct {
 	// сумма транзакции
 	Amount int64 `protobuf:"varint,4,opt,name=amount,proto3" json:"amount,omitempty"`
 	// валюта (RUB / USD / EUR)
-	Currency string `protobuf:"bytes,5,opt,name=currency,proto3" json:"currency,omitempty"`
+	Currency int32 `protobuf:"varint,5,opt,name=currency,proto3" json:"currency,omitempty"`
 	// название/идентификатор магазина/сервиса
 	Merchant string `protobuf:"bytes,6,opt,name=merchant,proto3" json:"merchant,omitempty"`
 	// ISO-код страны (RU/US/CA)
@@ -159,11 +159,11 @@ func (x *Transaction) GetAmount() int64 {
 	return 0
 }
 
-func (x *Transaction) GetCurrency() string {
+func (x *Transaction) GetCurrency() int32 {
 	if x != nil {
 		return x.Currency
 	}
-	return ""
+	return 0
 }
 
 func (x *Transaction) GetMerchant() string {
@@ -636,7 +636,7 @@ const file_core_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x16\n" +
 	"\x06amount\x18\x04 \x01(\x03R\x06amount\x12\x1a\n" +
-	"\bcurrency\x18\x05 \x01(\tR\bcurrency\x12\x1a\n" +
+	"\bcurrency\x18\x05 \x01(\x05R\bcurrency\x12\x1a\n" +
 	"\bmerchant\x18\x06 \x01(\tR\bmerchant\x12\x18\n" +
 	"\acountry\x18\a \x01(\tR\acountry\x12\x1b\n" +
 	"\tsender_id\x18\b \x01(\tR\bsenderId\"w\n" +

@@ -11,6 +11,7 @@ package mocks
 
 import (
 	context "context"
+	model "processing_core/generated/proc_core_db/public/model"
 	reflect "reflect"
 
 	uuid "github.com/google/uuid"
@@ -121,4 +122,18 @@ func (m *MockCashInClientRepo) UpdateBalance(ctx context.Context, tx pgx.Tx, cli
 func (mr *MockCashInClientRepoMockRecorder) UpdateBalance(ctx, tx, clientID, newBalance any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBalance", reflect.TypeOf((*MockCashInClientRepo)(nil).UpdateBalance), ctx, tx, clientID, newBalance)
+}
+
+// UpsertTransaction mocks base method.
+func (m *MockCashInClientRepo) UpsertTransaction(ctx context.Context, tx pgx.Tx, transaction model.TransactionsHistory) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpsertTransaction", ctx, tx, transaction)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpsertTransaction indicates an expected call of UpsertTransaction.
+func (mr *MockCashInClientRepoMockRecorder) UpsertTransaction(ctx, tx, transaction any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertTransaction", reflect.TypeOf((*MockCashInClientRepo)(nil).UpsertTransaction), ctx, tx, transaction)
 }

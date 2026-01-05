@@ -43,7 +43,7 @@ func (m *MockSbpOutgoingOperations) EXPECT() *MockSbpOutgoingOperationsMockRecor
 }
 
 // Process mocks base method.
-func (m *MockSbpOutgoingOperations) Process(ctx context.Context, domainRequest *core.SbpOutgoingRequest) (*core.SbpOutgoingResponse, error) {
+func (m *MockSbpOutgoingOperations) Process(ctx context.Context, domainRequest *model.SbpOutgoingDomainRequest) (*core.SbpOutgoingResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Process", ctx, domainRequest)
 	ret0, _ := ret[0].(*core.SbpOutgoingResponse)
@@ -82,7 +82,7 @@ func (m *MockInternalOperations) EXPECT() *MockInternalOperationsMockRecorder {
 }
 
 // Process mocks base method.
-func (m *MockInternalOperations) Process(ctx context.Context, domainRequest *core.InternalRequest) (*core.InternalResponse, error) {
+func (m *MockInternalOperations) Process(ctx context.Context, domainRequest *model.InternalDomainRequest) (*core.InternalResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Process", ctx, domainRequest)
 	ret0, _ := ret[0].(*core.InternalResponse)
@@ -160,7 +160,7 @@ func (m *MockCashOutOperations) EXPECT() *MockCashOutOperationsMockRecorder {
 }
 
 // Process mocks base method.
-func (m *MockCashOutOperations) Process(ctx context.Context, domainRequest *core.CashOutRequest) (*core.CashOutResponse, error) {
+func (m *MockCashOutOperations) Process(ctx context.Context, domainRequest *model.CashOutDomainRequest) (*core.CashOutResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Process", ctx, domainRequest)
 	ret0, _ := ret[0].(*core.CashOutResponse)

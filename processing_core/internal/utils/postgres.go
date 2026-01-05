@@ -13,3 +13,12 @@ func UUIDArray(values []uuid.UUID) []postgres.Expression {
 	}
 	return expressions
 }
+
+// UUIDArray - конвертирует список uuid в список выражений для jet
+func IntegerArray(values []int64) []postgres.Expression {
+	expressions := make([]postgres.Expression, 0, len(values))
+	for _, val := range values {
+		expressions = append(expressions, postgres.Int(val))
+	}
+	return expressions
+}

@@ -2,8 +2,11 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"processing_core/generated/proc_core_db/public/model"
 	"processing_core/generated/proc_core_db/public/table"
+	"processing_core/internal/outbox"
+	"processing_core/internal/utils"
 	"processing_core/pkg/kafka_core"
 	"testing"
 	"time"
@@ -41,11 +44,9 @@ func TestPgDb_AppendOutbox(t *testing.T) {
 			name: "insert new transaction",
 			fields: fields{
 				prepare: func(ctx context.Context, db *pgDb, a *args) error {
-					// ничего не создаем заранее
 					return nil
 				},
 				check: func(ctx context.Context, db *pgDb, a *args) {
-					// Проверяем, что запись реально вставилась
 					var payload string
 					var eventType string
 					stmt := table.Outbox.SELECT(
@@ -58,8 +59,6 @@ func TestPgDb_AppendOutbox(t *testing.T) {
 					err := rows.Scan(&payload, &eventType)
 
 					require.NoError(t, err)
-
-					// Декодируем protojson обратно и проверяем ключевые поля
 					var decoded kafka_core.TransactionCore
 					err = protojson.Unmarshal([]byte(payload), &decoded)
 					require.NoError(t, err)
@@ -93,7 +92,6 @@ func TestPgDb_AppendOutbox(t *testing.T) {
 					return nil
 				},
 				check: func(ctx context.Context, db *pgDb, a *args) {
-					// Проверяем, что запись реально вставилась
 					var payload string
 					var eventType string
 					stmt := table.Outbox.SELECT(
@@ -107,7 +105,6 @@ func TestPgDb_AppendOutbox(t *testing.T) {
 
 					require.NoError(t, err)
 
-					// Декодируем protojson обратно и проверяем ключевые поля
 					var decoded kafka_core.TransactionCore
 					err = protojson.Unmarshal([]byte(payload), &decoded)
 					require.NoError(t, err)
@@ -275,7 +272,7 @@ func Test_mapTransactionDbModelToProto(t *testing.T) {
 	}
 }
 
-func Test_mapDbTransactionTypeToProto(t *testing.T) {
+func Test_mapTransactionTypeDbToProto(t *testing.T) {
 	t.Parallel()
 	type args struct {
 		transactionType *model.TransactionType
@@ -331,7 +328,267 @@ func Test_mapDbTransactionTypeToProto(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equalf(t, tt.want, mapDbTransactionTypeToProto(tt.args.transactionType), "mapDbTransactionTypeToProto(%v)", tt.args.transactionType)
+			assert.Equalf(t, tt.want, mapTransactionTypeDbToProto(tt.args.transactionType), "mapTransactionTypeDbToProto(%v)", tt.args.transactionType)
+		})
+	}
+}
+
+func TestPgDb_GetUnpublishedMessages(t *testing.T) {
+	ctx := context.Background()
+	db := NewTestDB(ctx, t)
+	now := time.Now()
+
+	msgs := []model.Outbox{
+		{
+			ID:          1,
+			AggregateID: uuid.New(),
+			Published:   lo.ToPtr(false),
+			EventType:   outbox.EventTypeTransaction.String(),
+			CreatedAt:   lo.ToPtr(now.Add(-2 * time.Hour)),
+			Payload:     `{"x":"y"}`,
+		},
+		{
+			ID:          2,
+			AggregateID: uuid.New(),
+			Published:   lo.ToPtr(false),
+			CreatedAt:   lo.ToPtr(now.Add(-1 * time.Hour)),
+			EventType:   outbox.EventTypeTransaction.String(),
+			Payload:     `{"x":"y"}`,
+		},
+		{
+			ID:          3,
+			AggregateID: uuid.New(),
+			Published:   lo.ToPtr(true),
+			CreatedAt:   lo.ToPtr(now),
+			EventType:   outbox.EventTypeTransaction.String(),
+			Payload:     `{"x":"y"}`,
+		},
+		{
+			ID:          4,
+			AggregateID: uuid.New(),
+			Published:   lo.ToPtr(false),
+			CreatedAt:   lo.ToPtr(now.Add(1 * time.Hour)),
+			EventType:   outbox.EventTypeTransaction.String(),
+			Payload:     `{"x":"y"}`,
+		},
+	}
+	tests := []struct {
+		name           string
+		prepare        func(ctx context.Context, db *pgDb)
+		expectedCount  int
+		validateResult func(t *testing.T, results []model.Outbox)
+	}{
+		{
+			name:          "success - get all unpublished messages",
+			expectedCount: 3,
+			prepare: func(ctx context.Context, db *pgDb) {
+				err := db.Transactional(ctx, func(tx pgx.Tx) error {
+					for _, msg := range msgs {
+						payloadJSON, err := json.Marshal(msg.Payload)
+						if err != nil {
+							return err
+						}
+
+						_, err = tx.Exec(ctx,
+							`INSERT INTO public.outbox (
+                id,
+                aggregate_id,
+                published,
+                created_at,
+                event_type,
+                payload
+            ) VALUES ($1, $2, $3, $4, $5, $6)`,
+							msg.ID,
+							msg.AggregateID,
+							*msg.Published,
+							*msg.CreatedAt,
+							msg.EventType,
+							payloadJSON,
+						)
+						if err != nil {
+							return err
+						}
+					}
+					return nil
+				})
+				require.NoError(t, err)
+			},
+			validateResult: func(t *testing.T, results []model.Outbox) {
+				for _, msg := range results {
+					assert.False(t, *msg.Published)
+				}
+				assert.True(t, results[0].CreatedAt.Before(*results[1].CreatedAt) || results[0].CreatedAt.Equal(*results[1].CreatedAt))
+				assert.True(t, results[1].CreatedAt.Before(*results[2].CreatedAt) || results[1].CreatedAt.Equal(*results[2].CreatedAt))
+			},
+		},
+		{
+			name:          "success - no unpublished messages",
+			expectedCount: 0,
+			prepare:       func(ctx context.Context, db *pgDb) {},
+			validateResult: func(t *testing.T, results []model.Outbox) {
+				assert.Empty(t, results)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				tl := table.Outbox
+				var ids []int64
+				for _, msg := range msgs {
+					ids = append(ids, msg.ID)
+				}
+				stmt := tl.DELETE().WHERE(tl.ID.IN(utils.IntegerArray(ids)...))
+				sql, args := stmt.Sql()
+				_, err := db.conn.Exec(ctx, sql, args...)
+				if err != nil {
+					t.Fatal(err)
+				}
+			})
+			tt.prepare(ctx, db)
+			var results []model.Outbox
+			err := db.Transactional(ctx, func(tx pgx.Tx) error {
+				var txErr error
+				results, txErr = db.GetUnpublishedMessages(ctx, tx)
+				return txErr
+			})
+
+			require.NoError(t, err)
+			assert.Len(t, results, tt.expectedCount)
+
+			if tt.validateResult != nil {
+				tt.validateResult(t, results)
+			}
+		})
+	}
+}
+
+func TestPgDb_MarkMessagesAsProcessed(t *testing.T) {
+	ctx := context.Background()
+	db := NewTestDB(ctx, t)
+	now := time.Now()
+
+	msgs := []model.Outbox{
+		{
+			ID:          1,
+			AggregateID: uuid.New(),
+			Published:   lo.ToPtr(false),
+			EventType:   outbox.EventTypeTransaction.String(),
+			CreatedAt:   lo.ToPtr(now.Add(-2 * time.Hour)),
+			Payload:     `{"x":"y"}`,
+		},
+		{
+			ID:          2,
+			AggregateID: uuid.New(),
+			Published:   lo.ToPtr(false),
+			CreatedAt:   lo.ToPtr(now.Add(-1 * time.Hour)),
+			EventType:   outbox.EventTypeTransaction.String(),
+			Payload:     `{"x":"y"}`,
+		},
+		{
+			ID:          3,
+			AggregateID: uuid.New(),
+			Published:   lo.ToPtr(false),
+			CreatedAt:   lo.ToPtr(now),
+			EventType:   outbox.EventTypeTransaction.String(),
+			Payload:     `{"x":"y"}`,
+		},
+	}
+
+	tests := []struct {
+		name          string
+		idsToMark     []int64
+		expectedState map[int64]bool
+		prepare       func(ctx context.Context, db *pgDb)
+	}{
+		{
+			name:      "success - mark 1 and 2 as processed",
+			idsToMark: []int64{1, 2},
+			expectedState: map[int64]bool{
+				1: true,
+				2: true,
+				3: false,
+			},
+			prepare: func(ctx context.Context, db *pgDb) {
+				err := db.Transactional(ctx, func(tx pgx.Tx) error {
+					for _, msg := range msgs {
+						payloadJSON, err := json.Marshal(msg.Payload)
+						if err != nil {
+							return err
+						}
+						_, err = tx.Exec(ctx,
+							`INSERT INTO public.outbox (
+								id, aggregate_id, published, created_at, event_type, payload
+							) VALUES ($1,$2,$3,$4,$5,$6)`,
+							msg.ID, msg.AggregateID, *msg.Published, *msg.CreatedAt, msg.EventType, payloadJSON,
+						)
+						if err != nil {
+							return err
+						}
+					}
+					return nil
+				})
+				require.NoError(t, err)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				tl := table.Outbox
+				var ids []int64
+				for _, msg := range msgs {
+					ids = append(ids, msg.ID)
+				}
+				stmt := tl.DELETE().WHERE(tl.ID.IN(utils.IntegerArray(ids)...))
+				sql, args := stmt.Sql()
+				_, err := db.conn.Exec(ctx, sql, args...)
+				if err != nil {
+					t.Fatal(err)
+				}
+			})
+
+			tt.prepare(ctx, db)
+
+			err := db.Transactional(ctx, func(tx pgx.Tx) error {
+				return db.MarkMessagesAsProcessed(ctx, tx, tt.idsToMark)
+			})
+			require.NoError(t, err)
+
+			err = db.Transactional(ctx, func(tx pgx.Tx) error {
+				tl := table.Outbox
+				stmt := tl.SELECT(tl.ID, tl.Published).WHERE(tl.ID.IN(utils.IntegerArray([]int64{1, 2, 3})...))
+				sql, args := stmt.Sql()
+				rows, err := tx.Query(ctx, sql, args...)
+				if err != nil {
+					return err
+				}
+				results, err := pgx.CollectRows(rows, func(r pgx.CollectableRow) (struct {
+					ID        int64
+					Published bool
+				}, error) {
+					var id int64
+					var published bool
+					err := r.Scan(&id, &published)
+					return struct {
+						ID        int64
+						Published bool
+					}{id, published}, err
+				})
+				if err != nil {
+					return err
+				}
+
+				for _, res := range results {
+					expected, ok := tt.expectedState[res.ID]
+					require.True(t, ok)
+					assert.Equal(t, expected, res.Published)
+				}
+				return nil
+			})
+			require.NoError(t, err)
 		})
 	}
 }

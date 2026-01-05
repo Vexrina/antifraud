@@ -11,7 +11,8 @@ package mocks
 
 import (
 	context "context"
-	model "processing_core/internal/app/model"
+	model "processing_core/generated/proc_core_db/public/model"
+	model0 "processing_core/internal/app/model"
 	reflect "reflect"
 
 	uuid "github.com/google/uuid"
@@ -43,20 +44,6 @@ func (m *MockInternalClientRepo) EXPECT() *MockInternalClientRepoMockRecorder {
 	return m.recorder
 }
 
-// AddOperationToHistory mocks base method.
-func (m *MockInternalClientRepo) AddOperationToHistory(ctx context.Context, tx pgx.Tx, clientID uuid.UUID, operation model.Transaction) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddOperationToHistory", ctx, tx, clientID, operation)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// AddOperationToHistory indicates an expected call of AddOperationToHistory.
-func (mr *MockInternalClientRepoMockRecorder) AddOperationToHistory(ctx, tx, clientID, operation any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOperationToHistory", reflect.TypeOf((*MockInternalClientRepo)(nil).AddOperationToHistory), ctx, tx, clientID, operation)
-}
-
 // GetCurrentBalanceTx mocks base method.
 func (m *MockInternalClientRepo) GetCurrentBalanceTx(ctx context.Context, tx pgx.Tx, clientID uuid.UUID) (int64, error) {
 	m.ctrl.T.Helper()
@@ -86,6 +73,20 @@ func (mr *MockInternalClientRepoMockRecorder) UpdateBalance(ctx, tx, clientID, n
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBalance", reflect.TypeOf((*MockInternalClientRepo)(nil).UpdateBalance), ctx, tx, clientID, newBalance)
 }
 
+// UpsertTransaction mocks base method.
+func (m *MockInternalClientRepo) UpsertTransaction(ctx context.Context, tx pgx.Tx, transaction model.TransactionsHistory) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpsertTransaction", ctx, tx, transaction)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpsertTransaction indicates an expected call of UpsertTransaction.
+func (mr *MockInternalClientRepoMockRecorder) UpsertTransaction(ctx, tx, transaction any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertTransaction", reflect.TypeOf((*MockInternalClientRepo)(nil).UpsertTransaction), ctx, tx, transaction)
+}
+
 // MockAntifraudInternalCheck is a mock of AntifraudInternalCheck interface.
 type MockAntifraudInternalCheck struct {
 	ctrl     *gomock.Controller
@@ -111,7 +112,7 @@ func (m *MockAntifraudInternalCheck) EXPECT() *MockAntifraudInternalCheckMockRec
 }
 
 // InternalCheck mocks base method.
-func (m *MockAntifraudInternalCheck) InternalCheck(ctx context.Context, operation model.Transaction) error {
+func (m *MockAntifraudInternalCheck) InternalCheck(ctx context.Context, operation *model0.InternalDomainRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InternalCheck", ctx, operation)
 	ret0, _ := ret[0].(error)

@@ -2,13 +2,16 @@ package usecases
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	dbModel "processing_core/generated/proc_core_db/public/model"
 	"processing_core/internal/app/model"
+	"processing_core/internal/repository"
 	desc "processing_core/pkg/core"
 )
 
@@ -18,11 +21,11 @@ type (
 		GetCurrentBalanceTx(ctx context.Context, tx pgx.Tx, clientID uuid.UUID) (int64, error)
 		UpdateBalance(ctx context.Context, tx pgx.Tx, clientID uuid.UUID, newBalance int64) error
 
-		AddOperationToHistory(ctx context.Context, tx pgx.Tx, clientID uuid.UUID, operation model.Transaction) error
+		UpsertTransaction(ctx context.Context, tx pgx.Tx, transaction dbModel.TransactionsHistory) error
 	}
 
 	AntifraudInternalCheck interface {
-		InternalCheck(ctx context.Context, operation model.Transaction) error
+		InternalCheck(ctx context.Context, operation *model.InternalDomainRequest) error
 	}
 
 	internalUsecase struct {
@@ -49,8 +52,9 @@ func (u *internalUsecase) Process(ctx context.Context, domainRequest *model.Inte
 	afCtx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 
-	err := u.antifraud.InternalCheck(afCtx, *domainRequest.Transaction)
-	if err != nil {
+	err := u.antifraud.InternalCheck(afCtx, domainRequest)
+	// пришла ошибка из антифрода и это НЕ отмена контекста
+	if err != nil && !(errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled)) {
 		return &desc.InternalResponse{
 			NewStatus: desc.OperationStatus_Declined,
 		}, err
@@ -92,7 +96,7 @@ func (u *internalUsecase) Process(ctx context.Context, domainRequest *model.Inte
 			return txErr
 		}
 
-		txErr = u.clientRepo.AddOperationToHistory(ctx, tx, receiver, *domainRequest.Transaction)
+		txErr = u.clientRepo.UpsertTransaction(ctx, tx, repository.MapInternalDomainToTransaction(*domainRequest))
 		if txErr != nil {
 			return txErr
 		}

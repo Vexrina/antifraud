@@ -285,7 +285,8 @@
           "title": "сумма транзакции"
         },
         "currency": {
-          "type": "string",
+          "type": "integer",
+          "format": "int32",
           "title": "валюта (RUB / USD / EUR)"
         },
         "merchant": {

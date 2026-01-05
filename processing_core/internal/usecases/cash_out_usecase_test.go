@@ -12,6 +12,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"processing_core/internal/app/model"
+	"processing_core/internal/repository"
 	"processing_core/internal/usecases/mocks"
 	desc "processing_core/pkg/core"
 )
@@ -37,7 +38,7 @@ func TestCashOutUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockSbpOutgoingClientRepo, antifraud *mocks.MockAntifraudCashOutCheck, atm *mocks.MockCashOutInterface, args *args) {
 					antifraud.EXPECT().
-						CashOutCheck(gomock.Any(), *args.domainRequest.Transaction).
+						CashOutCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -50,7 +51,7 @@ func TestCashOutUsecase_Process(t *testing.T) {
 						UpdateBalance(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID, senderNewBalance).
 						Return(nil)
 					clientRepo.EXPECT().
-						AddOperationToHistory(gomock.Any(), gomock.Any(), uuid.Nil, *args.domainRequest.Transaction).
+						UpsertTransaction(gomock.Any(), gomock.Any(), repository.MapCashOutDomainToTransaction(*args.domainRequest)).
 						Return(nil)
 					commonRepo.EXPECT().
 						Transactional(gomock.Any(), gomock.Any()).
@@ -83,7 +84,7 @@ func TestCashOutUsecase_Process(t *testing.T) {
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockSbpOutgoingClientRepo, antifraud *mocks.MockAntifraudCashOutCheck, atm *mocks.MockCashOutInterface, args *args) {
 					antifraudErr := errors.New("antifraud check failed")
 					antifraud.EXPECT().
-						CashOutCheck(gomock.Any(), *args.domainRequest.Transaction).
+						CashOutCheck(gomock.Any(), args.domainRequest).
 						Return(antifraudErr)
 				},
 			},
@@ -108,7 +109,7 @@ func TestCashOutUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockSbpOutgoingClientRepo, antifraud *mocks.MockAntifraudCashOutCheck, atm *mocks.MockCashOutInterface, args *args) {
 					antifraud.EXPECT().
-						CashOutCheck(gomock.Any(), *args.domainRequest.Transaction).
+						CashOutCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					lockErr := errors.New("failed to lock client")
 					commonRepo.EXPECT().
@@ -142,7 +143,7 @@ func TestCashOutUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockSbpOutgoingClientRepo, antifraud *mocks.MockAntifraudCashOutCheck, atm *mocks.MockCashOutInterface, args *args) {
 					antifraud.EXPECT().
-						CashOutCheck(gomock.Any(), *args.domainRequest.Transaction).
+						CashOutCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -181,7 +182,7 @@ func TestCashOutUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockSbpOutgoingClientRepo, antifraud *mocks.MockAntifraudCashOutCheck, atm *mocks.MockCashOutInterface, args *args) {
 					antifraud.EXPECT().
-						CashOutCheck(gomock.Any(), *args.domainRequest.Transaction).
+						CashOutCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -218,7 +219,7 @@ func TestCashOutUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockSbpOutgoingClientRepo, antifraud *mocks.MockAntifraudCashOutCheck, atm *mocks.MockCashOutInterface, args *args) {
 					antifraud.EXPECT().
-						CashOutCheck(gomock.Any(), *args.domainRequest.Transaction).
+						CashOutCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -259,7 +260,7 @@ func TestCashOutUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockSbpOutgoingClientRepo, antifraud *mocks.MockAntifraudCashOutCheck, atm *mocks.MockCashOutInterface, args *args) {
 					antifraud.EXPECT().
-						CashOutCheck(gomock.Any(), *args.domainRequest.Transaction).
+						CashOutCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -273,7 +274,7 @@ func TestCashOutUsecase_Process(t *testing.T) {
 						Return(nil)
 					historyErr := errors.New("failed to add operation to history")
 					clientRepo.EXPECT().
-						AddOperationToHistory(gomock.Any(), gomock.Any(), uuid.Nil, *args.domainRequest.Transaction).
+						UpsertTransaction(gomock.Any(), gomock.Any(), repository.MapCashOutDomainToTransaction(*args.domainRequest)).
 						Return(historyErr)
 					commonRepo.EXPECT().
 						Transactional(gomock.Any(), gomock.Any()).

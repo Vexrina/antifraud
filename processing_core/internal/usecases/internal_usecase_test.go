@@ -12,6 +12,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"processing_core/internal/app/model"
+	"processing_core/internal/repository"
 	"processing_core/internal/usecases/mocks"
 	desc "processing_core/pkg/core"
 )
@@ -37,7 +38,7 @@ func TestInternalUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockInternalClientRepo, antifraud *mocks.MockAntifraudInternalCheck, args *args) {
 					antifraud.EXPECT().
-						InternalCheck(gomock.Any(), *args.domainRequest.Transaction).
+						InternalCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -60,7 +61,7 @@ func TestInternalUsecase_Process(t *testing.T) {
 						UpdateBalance(gomock.Any(), gomock.Any(), args.domainRequest.ReceiverId, receiverNewBalance).
 						Return(nil)
 					clientRepo.EXPECT().
-						AddOperationToHistory(gomock.Any(), gomock.Any(), args.domainRequest.ReceiverId, *args.domainRequest.Transaction).
+						UpsertTransaction(gomock.Any(), gomock.Any(), repository.MapInternalDomainToTransaction(*args.domainRequest)).
 						Return(nil)
 					commonRepo.EXPECT().
 						Transactional(gomock.Any(), gomock.Any()).
@@ -91,7 +92,7 @@ func TestInternalUsecase_Process(t *testing.T) {
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockInternalClientRepo, antifraud *mocks.MockAntifraudInternalCheck, args *args) {
 					antifraudErr := errors.New("antifraud check failed")
 					antifraud.EXPECT().
-						InternalCheck(gomock.Any(), *args.domainRequest.Transaction).
+						InternalCheck(gomock.Any(), args.domainRequest).
 						Return(antifraudErr)
 				},
 			},
@@ -116,7 +117,7 @@ func TestInternalUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockInternalClientRepo, antifraud *mocks.MockAntifraudInternalCheck, args *args) {
 					antifraud.EXPECT().
-						InternalCheck(gomock.Any(), *args.domainRequest.Transaction).
+						InternalCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					lockErr := errors.New("failed to lock sender")
 					commonRepo.EXPECT().
@@ -150,7 +151,7 @@ func TestInternalUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockInternalClientRepo, antifraud *mocks.MockAntifraudInternalCheck, args *args) {
 					antifraud.EXPECT().
-						InternalCheck(gomock.Any(), *args.domainRequest.Transaction).
+						InternalCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -187,7 +188,7 @@ func TestInternalUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockInternalClientRepo, antifraud *mocks.MockAntifraudInternalCheck, args *args) {
 					antifraud.EXPECT().
-						InternalCheck(gomock.Any(), *args.domainRequest.Transaction).
+						InternalCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -227,7 +228,7 @@ func TestInternalUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockInternalClientRepo, antifraud *mocks.MockAntifraudInternalCheck, args *args) {
 					antifraud.EXPECT().
-						InternalCheck(gomock.Any(), *args.domainRequest.Transaction).
+						InternalCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -267,7 +268,7 @@ func TestInternalUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockInternalClientRepo, antifraud *mocks.MockAntifraudInternalCheck, args *args) {
 					antifraud.EXPECT().
-						InternalCheck(gomock.Any(), *args.domainRequest.Transaction).
+						InternalCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -311,7 +312,7 @@ func TestInternalUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockInternalClientRepo, antifraud *mocks.MockAntifraudInternalCheck, args *args) {
 					antifraud.EXPECT().
-						InternalCheck(gomock.Any(), *args.domainRequest.Transaction).
+						InternalCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -358,7 +359,7 @@ func TestInternalUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockInternalClientRepo, antifraud *mocks.MockAntifraudInternalCheck, args *args) {
 					antifraud.EXPECT().
-						InternalCheck(gomock.Any(), *args.domainRequest.Transaction).
+						InternalCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -409,7 +410,7 @@ func TestInternalUsecase_Process(t *testing.T) {
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockInternalClientRepo, antifraud *mocks.MockAntifraudInternalCheck, args *args) {
 					antifraud.EXPECT().
-						InternalCheck(gomock.Any(), *args.domainRequest.Transaction).
+						InternalCheck(gomock.Any(), args.domainRequest).
 						Return(nil)
 					commonRepo.EXPECT().
 						LockClient(gomock.Any(), gomock.Any(), args.domainRequest.Transaction.SenderID).
@@ -433,7 +434,7 @@ func TestInternalUsecase_Process(t *testing.T) {
 						Return(nil)
 					historyErr := errors.New("failed to add operation to history")
 					clientRepo.EXPECT().
-						AddOperationToHistory(gomock.Any(), gomock.Any(), args.domainRequest.ReceiverId, *args.domainRequest.Transaction).
+						UpsertTransaction(gomock.Any(), gomock.Any(), repository.MapInternalDomainToTransaction(*args.domainRequest)).
 						Return(historyErr)
 					commonRepo.EXPECT().
 						Transactional(gomock.Any(), gomock.Any()).

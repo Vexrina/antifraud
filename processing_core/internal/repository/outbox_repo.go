@@ -3,16 +3,19 @@ package repository
 import (
 	"context"
 	"fmt"
-	"processing_core/generated/proc_core_db/public/model"
-	"processing_core/generated/proc_core_db/public/table"
-	"processing_core/internal/outbox"
-	"processing_core/pkg/kafka_core"
 	"time"
 
+	"github.com/go-jet/jet/v2/postgres"
 	"github.com/jackc/pgx/v5"
 	"github.com/samber/lo"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"processing_core/generated/proc_core_db/public/model"
+	"processing_core/generated/proc_core_db/public/table"
+	"processing_core/internal/outbox"
+	"processing_core/internal/utils"
+	"processing_core/pkg/kafka_core"
 )
 
 // AppendOutbox аппендит запись в аутбокс, чтобы кафка его сожрала
@@ -48,7 +51,7 @@ func (db *pgDb) AppendOutbox(ctx context.Context, tx pgx.Tx, transaction model.T
 	return nil
 }
 
-func mapDbTransactionTypeToProto(transactionType *model.TransactionType) kafka_core.TransactionType {
+func mapTransactionTypeDbToProto(transactionType *model.TransactionType) kafka_core.TransactionType {
 	if transactionType == nil {
 		return kafka_core.TransactionType_Unknown
 	}
@@ -103,9 +106,44 @@ func mapTransactionDbModelToProto(transaction model.TransactionsHistory) *kafka_
 		ReceiverId:      receiverID,
 		ReceiverBic:     &receiverBic,
 		AtmId:           atmID,
-		TransactionType: mapDbTransactionTypeToProto(transaction.TransactionType),
+		TransactionType: mapTransactionTypeDbToProto(transaction.TransactionType),
 		Revision:        transaction.Revision,
 	}
 
 	return msg
+}
+
+func (db *pgDb) GetUnpublishedMessages(ctx context.Context, tx pgx.Tx) ([]model.Outbox, error) {
+	t := table.Outbox
+	stmt := table.Outbox.SELECT(
+		t.AllColumns.As(""),
+	).WHERE(
+		t.Published.EQ(postgres.Bool(false)),
+	).ORDER_BY(
+		t.CreatedAt.ASC(),
+	).LIMIT(500).FOR(
+		postgres.UPDATE().SKIP_LOCKED(),
+	)
+
+	sql, args := stmt.Sql()
+	rows, err := tx.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	msgs, err := pgx.CollectRows(rows, pgx.RowToStructByName[model.Outbox])
+	if err != nil {
+		return nil, err
+	}
+	return msgs, nil
+}
+
+func (db *pgDb) MarkMessagesAsProcessed(ctx context.Context, tx pgx.Tx, ids []int64) error {
+	t := table.Outbox
+	stmt := table.Outbox.UPDATE(
+		t.Published,
+	).SET(postgres.Bool(true)).WHERE(t.ID.IN(utils.IntegerArray(ids)...))
+
+	sql, args := stmt.Sql()
+	_, err := tx.Exec(ctx, sql, args...)
+	return err
 }

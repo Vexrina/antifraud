@@ -55,7 +55,7 @@ message Transaction{
     // сумма транзакции
     int64 amount = 4;
     // валюта (RUB / USD / EUR)
-    string currency = 5;
+    int32 currency = 5;
     // название/идентификатор магазина/сервиса
     string merchant = 6;
     // ISO-код страны (RU/US/CA)
