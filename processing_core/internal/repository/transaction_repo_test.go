@@ -154,7 +154,7 @@ func TestPgDb_UpsertTransaction(t *testing.T) {
 			},
 			args: args{
 				transaction: model.TransactionsHistory{
-					ID:              42,
+					ID:              45,
 					TransactionID:   lo.ToPtr(uuid.New()),
 					CreatedAt:       lo.ToPtr(time.Now()),
 					Amount:          lo.ToPtr(int64(1000)),
@@ -267,7 +267,7 @@ func TestPgDb_GetTransactions(t *testing.T) {
 	db := NewTestDB(ctx, t)
 	transactions := []model.TransactionsHistory{
 		{
-			ID:              42,
+			ID:              1,
 			TransactionID:   lo.ToPtr(uuid.New()),
 			CreatedAt:       lo.ToPtr(now.Add(-2 * time.Hour)),
 			Amount:          lo.ToPtr(int64(1000)),
@@ -279,7 +279,7 @@ func TestPgDb_GetTransactions(t *testing.T) {
 			TransactionType: lo.ToPtr(model.TransactionType_CashIn),
 		},
 		{
-			ID:              42,
+			ID:              2,
 			TransactionID:   lo.ToPtr(uuid.New()),
 			CreatedAt:       lo.ToPtr(now.Add(-1 * time.Hour)),
 			Amount:          lo.ToPtr(int64(2000)),
@@ -291,7 +291,7 @@ func TestPgDb_GetTransactions(t *testing.T) {
 			TransactionType: lo.ToPtr(model.TransactionType_CashOut),
 		},
 		{
-			ID:              42,
+			ID:              3,
 			TransactionID:   lo.ToPtr(uuid.New()),
 			CreatedAt:       lo.ToPtr(now),
 			Amount:          lo.ToPtr(int64(3000)),
@@ -303,7 +303,7 @@ func TestPgDb_GetTransactions(t *testing.T) {
 			TransactionType: lo.ToPtr(model.TransactionType_Internal),
 		},
 		{
-			ID:              42,
+			ID:              4,
 			TransactionID:   lo.ToPtr(uuid.New()),
 			CreatedAt:       lo.ToPtr(now.Add(1 * time.Hour)),
 			Amount:          lo.ToPtr(int64(5000)),

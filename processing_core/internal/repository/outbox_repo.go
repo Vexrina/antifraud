@@ -25,7 +25,7 @@ func (db *pgDb) AppendOutbox(ctx context.Context, tx pgx.Tx, transaction model.T
 
 	insertedModel := model.Outbox{
 		AggregateID: *transaction.TransactionID,
-		EventType:   fmt.Sprint(outbox.OutboxEventType_Transaction),
+		EventType:   outbox.EventTypeTransaction.String(),
 		Payload:     string(payloadJSON),
 		CreatedAt:   lo.ToPtr(time.Now()),
 		Version:     lo.ToPtr(transaction.Revision),
@@ -68,31 +68,27 @@ func mapDbTransactionTypeToProto(transactionType *model.TransactionType) kafka_c
 
 func mapTransactionDbModelToProto(transaction model.TransactionsHistory) *kafka_core.TransactionCore {
 	var (
-		receiverID  = lo.ToPtr("")
-		atmID       = lo.ToPtr("")
 		merchant    = ""
 		country     = ""
+		receiverID  = lo.ToPtr("")
 		receiverBic = ""
+		atmID       = lo.ToPtr("")
 	)
-
-	if transaction.ReceiverID != nil {
-		receiverID = lo.ToPtr(transaction.ReceiverID.String())
-	}
-
-	if transaction.AtmID != nil {
-		atmID = lo.ToPtr(transaction.AtmID.String())
-	}
 
 	if transaction.Merchant != nil {
 		merchant = *transaction.Merchant
 	}
-
 	if transaction.Country != nil {
 		country = *transaction.Country
 	}
-
+	if transaction.ReceiverID != nil {
+		receiverID = lo.ToPtr(transaction.ReceiverID.String())
+	}
 	if transaction.ReceiverBic != nil {
-		country = *transaction.ReceiverBic
+		receiverBic = *transaction.ReceiverBic
+	}
+	if transaction.AtmID != nil {
+		atmID = lo.ToPtr(transaction.AtmID.String())
 	}
 
 	msg := &kafka_core.TransactionCore{
@@ -100,7 +96,7 @@ func mapTransactionDbModelToProto(transaction model.TransactionsHistory) *kafka_
 		TransactionId:   transaction.TransactionID.String(),
 		CreatedAt:       timestamppb.New(*transaction.CreatedAt),
 		Amount:          *transaction.Amount,
-		Currency:        fmt.Sprint(transaction.Currency),
+		Currency:        fmt.Sprint(*transaction.Currency),
 		Merchant:        merchant,
 		Country:         country,
 		SenderId:        transaction.SenderID.String(),
