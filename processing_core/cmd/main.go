@@ -121,7 +121,7 @@ func getConn(url, port string) *grpc.ClientConn {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		log.Fatalf("Не создали коннекшн с floatweaver: %v", err)
+		log.Fatalf("Antifraud is not ready: %v", err)
 	}
 	return conn
 }

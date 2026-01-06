@@ -79,7 +79,7 @@ func (u *cashOutUsecase) Process(ctx context.Context, domainRequest *model.CashO
 
 		senderBalance, txErr := u.clientRepo.GetCurrentBalanceTx(ctx, tx, sender)
 		if txErr != nil {
-			return nil
+			return txErr
 		}
 		if senderBalance < amount {
 			return fmt.Errorf("LIMIT OVERFLOW")

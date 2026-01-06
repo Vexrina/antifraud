@@ -89,7 +89,9 @@ func (u *internalUsecase) Process(ctx context.Context, domainRequest *model.Inte
 
 		receiverBalance, txErr := u.clientRepo.GetCurrentBalanceTx(ctx, tx, receiver)
 		if txErr != nil {
-			return txErr
+			if !errors.Is(txErr, pgx.ErrNoRows) {
+				return txErr
+			}
 		}
 		txErr = u.clientRepo.UpdateBalance(ctx, tx, receiver, receiverBalance+amount)
 		if txErr != nil {

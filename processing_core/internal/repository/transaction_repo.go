@@ -74,7 +74,7 @@ func (db *pgDb) UpsertTransaction(ctx context.Context, tx pgx.Tx, transaction mo
 	if err != nil {
 		return fmt.Errorf("can't upsert transaction: %w", err)
 	}
-	return nil
+	return db.AppendOutbox(ctx, tx, transaction)
 }
 
 // GetTransactions - получает транзакции по составному фильтру

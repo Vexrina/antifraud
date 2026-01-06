@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -48,7 +49,9 @@ func (u *cashInUsecase) Process(ctx context.Context, domainRequest *model.CashIn
 
 		clientBalance, txErr := u.clientRepo.GetCurrentBalanceTx(ctx, tx, clientID)
 		if txErr != nil {
-			return txErr
+			if !errors.Is(txErr, pgx.ErrNoRows) {
+				return txErr
+			}
 		}
 
 		txErr = u.clientRepo.UpdateBalance(ctx, tx, clientID, clientBalance+domainRequest.Transaction.Amount)
