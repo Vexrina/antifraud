@@ -677,12 +677,12 @@ const file_core_proto_rawDesc = "" +
 	"\bDeclined\x10\x02\x12\f\n" +
 	"\bApproved\x10\x03\x12\n" +
 	"\n" +
-	"\x06Closed\x10\x042\xd9\x02\n" +
-	"\x04Core\x12R\n" +
-	"\bInternal\x12\x15.core.InternalRequest\x1a\x16.core.InternalResponse\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/v1/internal\x12_\n" +
-	"\vSbpOutgoing\x12\x18.core.SbpOutgoingRequest\x1a\x19.core.SbpOutgoingResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/v1/sbp-outgoing\x12K\n" +
-	"\x06CashIn\x12\x13.core.CashInRequest\x1a\x14.core.CashInResponse\"\x16\x82\xd3\xe4\x93\x02\x10:\x01*\"\v/v1/cash/in\x12O\n" +
-	"\aCashOut\x12\x14.core.CashOutRequest\x1a\x15.core.CashOutResponse\"\x17\x82\xd3\xe4\x93\x02\x11:\x01*\"\f/v1/cash/outB\bZ\x06./coreb\x06proto3"
+	"\x06Closed\x10\x042\xfa\x01\n" +
+	"\x04Core\x12;\n" +
+	"\bInternal\x12\x15.core.InternalRequest\x1a\x16.core.InternalResponse\"\x00\x12D\n" +
+	"\vSbpOutgoing\x12\x18.core.SbpOutgoingRequest\x1a\x19.core.SbpOutgoingResponse\"\x00\x125\n" +
+	"\x06CashIn\x12\x13.core.CashInRequest\x1a\x14.core.CashInResponse\"\x00\x128\n" +
+	"\aCashOut\x12\x14.core.CashOutRequest\x1a\x15.core.CashOutResponse\"\x00B\bZ\x06./coreb\x06proto3"
 
 var (
 	file_core_proto_rawDescOnce sync.Once

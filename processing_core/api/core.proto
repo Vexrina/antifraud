@@ -5,34 +5,12 @@ package core;
 option go_package = "./core";
 
 import "google/protobuf/timestamp.proto";
-import "google/api/annotations.proto";
 
 service Core{
-    rpc Internal(InternalRequest) returns (InternalResponse) {
-        option (google.api.http) = {
-            post: "/v1/internal"
-            body: "*"
-        };
-    }
-    rpc SbpOutgoing(SbpOutgoingRequest) returns (SbpOutgoingResponse) {
-        option (google.api.http) = {
-            post: "/v1/sbp-outgoing"
-            body: "*"
-        };
-    }
-    rpc CashIn(CashInRequest) returns (CashInResponse) {
-        option (google.api.http) = {
-            post: "/v1/cash/in"
-            body: "*"
-        };
-  }
-
-    rpc CashOut(CashOutRequest) returns (CashOutResponse) {
-        option (google.api.http) = {
-            post: "/v1/cash/out"
-            body: "*"
-        };
-    } 
+    rpc Internal(InternalRequest) returns (InternalResponse) {}
+    rpc SbpOutgoing(SbpOutgoingRequest) returns (SbpOutgoingResponse) {}
+    rpc CashIn(CashInRequest) returns (CashInResponse) {}
+    rpc CashOut(CashOutRequest) returns (CashOutResponse) {}
 }
 
 // OperationStatus - общий статус операции в банке. Разные системы переводят его в разный момент времени.
