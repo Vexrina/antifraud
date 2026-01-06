@@ -33,3 +33,7 @@ go.work.sum
 
 # third party
 third_party/*
+
+# python venv/cache
+.venv
+*/__pycache__

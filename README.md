@@ -75,51 +75,78 @@
 Подсветите моменты, которые, по вашему мнению, положительно повлияют на оптимизацию, производительность и безопасность.
 
 
+clickhouse ddls:
+```sql
+create table default.kafka_transactions_raw
+(
+  id              String,
+  transactionId   String,
+  createdAt       String,
+  amount          String,
+  currency        String,
+  merchant        String,
+  country         String,
+  senderId        String,
+  receiverId      Nullable(String),
+  receiverBic     Nullable(String),
+  atmId           Nullable(String),
+  transactionType String,
+  revision        Nullable(String)
+)
+  engine = Kafka SETTINGS kafka_broker_list = 'redpanda:9092', kafka_topic_list = 'best_bank_transactions', kafka_group_name = 'ch_group', kafka_format = 'JSONEachRow';
 
 
+create table default.transactions
+(
+  id               UInt64,
+  transaction_id   String,
+  created_at       DateTime64(3),
+  amount           Int64,
+  currency         String,
+  merchant         String,
+  country          String,
+  sender_id        Nullable(String),
+  receiver_id      Nullable(String),
+  receiver_bic     Nullable(String),
+  atm_id           Nullable(String),
+  transaction_type Nullable(String),
+  revision         Nullable(Int64) default 0
+)
+  engine = MergeTree ORDER BY id
+    SETTINGS index_granularity = 8192;
 
+CREATE MATERIALIZED VIEW default.mv_kafka_transactions
+  TO default.transactions
+  (
+    `id` UInt64,
+    `transaction_id` String,
+    `created_at` DateTime,
+    `amount` Int64,
+    `currency` String,
+    `merchant` String,
+    `country` String,
+    `sender_id` Nullable(String),
+    `receiver_id` Nullable(String),
+    `receiver_bic` Nullable(String),
+    `atm_id` Nullable(String),
+    `transaction_type` Nullable(String),
+    `revision` Int64
+  )
+AS
+SELECT 
+  toUInt64OrZero(id)                              AS id,
+  transactionId                                   AS transaction_id,
+  parseDateTimeBestEffort(createdAt)              AS created_at,
+  toInt64OrZero(amount)                           AS amount,
+  currency,
+  merchant,
+  country,
+  if(senderId = '', NULL, senderId)               AS sender_id,
+  if(receiverId = '', NULL, receiverId)           AS receiver_id,
+  if(receiverBic = '', NULL, receiverBic)         AS receiver_bic,
+  if(atmId = '', NULL, atmId)                     AS atm_id,
+  if(transactionType = '', NULL, transactionType) AS transaction_type,
+  toInt64OrZero(coalesce(revision, '0'))          AS revision
+FROM default.kafka_transactions_raw;
 
-before any codegen:
-``` bash
-$ git clone https://github.com/googleapis/googleapis.git third_party/googleapis
-```
-
-check ur output:
-```bash
-$ tree -L 1
-.
-├── README.md
-├── antifraud
-├── chosen_theme.md
-├── processing_core
-├── quest.md
-└── third_party
-
-# or
-$ ls
-README.md  antifraud  chosen_theme.md  processing_core  quest.md  third_party
-```
-
-vscode settings
-```json
-// settings.json
-{
-  "go.testEnvVars": {
-    "TEST_DB_CONNSTR": "postgres://proc_core_user:proc_core_pwd@localhost:5433/proc_core_db?sslmode=disable"
-  }
-}
-
-// launch.json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Go: Test Package",
-      "type": "go",
-      "request": "launch",
-      "mode": "test",
-      "program": "${fileDirname}"
-    }
-  ]
-}
 ```
