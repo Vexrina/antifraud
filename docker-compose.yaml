@@ -1,0 +1,63 @@
+version: '3.8'
+
+networks:
+  redpanda_net:
+    driver: bridge
+
+services:
+  clickhouse-server:
+    image: clickhouse/clickhouse-server:23.9
+    container_name: clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_USER: myuser
+      CLICKHOUSE_PASSWORD: mypass
+      CLICKHOUSE_DEFAULT_DATABASE: default
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./processing_core/api:/var/lib/clickhouse/format_schemas
+      - ./third_party/protobuf:/var/lib/clickhouse/format_schemas/google/protobuf
+    networks:
+      - redpanda_net
+
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.1.6
+    container_name: redpanda
+    command: >
+      redpanda start
+      --overprovisioned
+      --smp 1
+      --memory 1G
+      --reserve-memory 0M
+      --kafka-addr PLAINTEXT://0.0.0.0:9092,OUTSIDE://0.0.0.0:19092
+      --advertise-kafka-addr PLAINTEXT://redpanda:9092,OUTSIDE://localhost:19092
+    ports:
+      - "9092:9092"
+      - "19092:19092"
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+    networks:
+      - redpanda_net
+
+  redpanda-console:
+    image: docker.redpanda.com/redpandadata/console:v3.3.2
+    container_name: redpanda-console
+    depends_on:
+      - redpanda
+    volumes:
+      - ./console.yaml:/etc/redpanda/console.yaml:ro
+    command: ["--config.filepath", "/etc/redpanda/console.yaml"]
+    ports:
+      - "8080:8080"
+    networks:
+      - redpanda_net
+
+volumes:
+  clickhouse_data:
+  redpanda_data:
