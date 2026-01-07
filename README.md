@@ -150,3 +150,49 @@ SELECT
 FROM default.kafka_transactions_raw;
 
 ```
+
+
+cassandra ddls:
+```sql
+CREATE KEYSPACE antifraud
+WITH replication = {
+  'class': 'SimpleStrategy',
+  'replication_factor': 1
+};
+
+create table antifraud.cash_out_30m
+(
+  user_id       uuid,
+  window_start  timestamp,
+  total_cashout decimal,
+  primary key (user_id, window_start)
+);
+
+
+
+CREATE TABLE antifraud.sbp_partners_30m (
+  user_id uuid,                 -- целевой пользователь X
+  window_start timestamp,       -- начало 30-минутного окна
+  partner_id uuid,              -- уникальный контрагент, с которым была операция
+  PRIMARY KEY ((user_id, window_start), partner_id)
+) WITH CLUSTERING ORDER BY (partner_id ASC)
+  AND default_time_to_live = 172800; -- TTL 2 дня
+
+CREATE TABLE antifraud.internal_partners_30m (
+  user_id uuid,
+  window_start timestamp,
+  partner_id uuid,
+  PRIMARY KEY ((user_id, window_start), partner_id)
+) WITH CLUSTERING ORDER BY (partner_id ASC)
+  AND default_time_to_live = 172800; -- TTL 2 дня
+
+CREATE TABLE antifraud.spent_3h (
+  user_id uuid,               -- целевой пользователь X
+  window_start timestamp,     -- начало 3-часового окна
+  total_spent decimal,        -- сумма всех расходов (кроме CashIn)
+  PRIMARY KEY ((user_id), window_start)
+) WITH CLUSTERING ORDER BY (window_start ASC)
+  AND default_time_to_live = 172800; -- TTL 2 дня
+
+
+```
