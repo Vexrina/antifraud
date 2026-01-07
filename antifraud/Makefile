@@ -1,9 +1,7 @@
 .PHONY: proto build run clean swagger
 
 export PATH := $(LOCAL_BIN):$(PATH)
-
-PROTO_ROOT=../third_party/googleapis
-PROTO_INCLUDES=-I api -I $(PROTO_ROOT)
+PROTO_INCLUDES=-I api
 # Установка зависимостей
 deps:
 	go mod tidy

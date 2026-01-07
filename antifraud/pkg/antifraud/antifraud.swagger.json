@@ -127,13 +127,12 @@
       "enum": [
         "Unknown",
         "Created",
-        "AntifraudCheck",
         "Declined",
         "Approved",
         "Closed"
       ],
       "default": "Unknown",
-      "description": "OperationStatus - общий статус операции в банке. Разные системы переводят его в разный момент времени.\n\n - Declined: На деле, тут еще и может быть заложен челлендж"
+      "description": "OperationStatus - общий статус операции в банке. Разные системы переводят его в разный момент времени.\n\n - Declined: На деле, тут еще и может быть заложен челлендж\n - Closed: реализованные системы не трогают данный статус"
     },
     "antifraudTransaction": {
       "type": "object",
