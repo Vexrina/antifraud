@@ -139,7 +139,7 @@ func TestCashOutUsecase_Process(t *testing.T) {
 			expectedError: "failed to lock client",
 		},
 		{
-			name: "success - GetCurrentBalanceTx fails but returns nil (bug in code)",
+			name: "error - GetCurrentBalanceTx fails",
 			fields: fields{
 				setupMocks: func(commonRepo *mocks.MockCommonRepo, clientRepo *mocks.MockSbpOutgoingClientRepo, antifraud *mocks.MockAntifraudCashOutCheck, atm *mocks.MockCashOutInterface, args *args) {
 					antifraud.EXPECT().
@@ -157,8 +157,6 @@ func TestCashOutUsecase_Process(t *testing.T) {
 						DoAndReturn(func(ctx context.Context, f func(tx pgx.Tx) error) error {
 							return f(nil)
 						})
-					atm.EXPECT().
-						GiveMoney(gomock.Any(), *args.domainRequest.Transaction)
 				},
 			},
 			args: args{
@@ -173,9 +171,9 @@ func TestCashOutUsecase_Process(t *testing.T) {
 				},
 			},
 			expectedResp: &desc.CashOutResponse{
-				NewStatus: desc.OperationStatus_Approved,
+				NewStatus: desc.OperationStatus_Declined,
 			},
-			expectedError: "",
+			expectedError: "failed to get balance",
 		},
 		{
 			name: "error - sender balance insufficient",

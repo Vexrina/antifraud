@@ -37,11 +37,12 @@ func TestService_SbpOutgoing(t *testing.T) {
 	}
 
 	tests := []struct {
-		name    string
-		fields  func(ctrl *gomock.Controller) *fields
-		args    args
-		wantErr bool
-		errCode codes.Code
+		name            string
+		fields          func(ctrl *gomock.Controller) *fields
+		args            args
+		wantErr         bool
+		errCode         codes.Code
+		wantedNewStatus desc.OperationStatus
 	}{
 		{
 			name: "validation error",
@@ -61,6 +62,21 @@ func TestService_SbpOutgoing(t *testing.T) {
 			name: "cashOut check fails",
 			fields: func(ctrl *gomock.Controller) *fields {
 				mockCheck := mocks.NewMockChecker(ctrl)
+				mockCheck.EXPECT().Check(gomock.Any(), gomock.Any()).Return(errors.New("someError"))
+				return &fields{cashOut: mockCheck}
+			},
+			args: args{
+				ctx: context.Background(),
+				req: validReq,
+			},
+			wantErr:         true,
+			errCode:         codes.FailedPrecondition,
+			wantedNewStatus: desc.OperationStatus_Approved,
+		},
+		{
+			name: "cashOut check fails",
+			fields: func(ctrl *gomock.Controller) *fields {
+				mockCheck := mocks.NewMockChecker(ctrl)
 				mockCheck.EXPECT().Check(gomock.Any(), gomock.Any()).Return(errors.New("declined"))
 				return &fields{cashOut: mockCheck}
 			},
@@ -68,8 +84,9 @@ func TestService_SbpOutgoing(t *testing.T) {
 				ctx: context.Background(),
 				req: validReq,
 			},
-			wantErr: true,
-			errCode: codes.FailedPrecondition,
+			wantErr:         false,
+			errCode:         codes.FailedPrecondition,
+			wantedNewStatus: desc.OperationStatus_Declined,
 		},
 		{
 			name: "success",
@@ -82,7 +99,8 @@ func TestService_SbpOutgoing(t *testing.T) {
 				ctx: context.Background(),
 				req: validReq,
 			},
-			wantErr: false,
+			wantErr:         false,
+			wantedNewStatus: desc.OperationStatus_Approved,
 		},
 	}
 
@@ -109,8 +127,8 @@ func TestService_SbpOutgoing(t *testing.T) {
 				}
 				return
 			}
-			if got.NewStatus != desc.OperationStatus_Approved {
-				t.Errorf("CashOut() = %v, want %v", got.NewStatus, desc.OperationStatus_Approved)
+			if got.NewStatus != tt.wantedNewStatus {
+				t.Errorf("CashOut() = %v, want %v", got.NewStatus, tt.wantedNewStatus)
 			}
 		})
 	}

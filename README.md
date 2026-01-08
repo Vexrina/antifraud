@@ -110,6 +110,8 @@ Python для тестов -- база
   - [Блок-схемы](https://plantuml.com/ru-dark/activity-diagram-beta)
   - И другие по необходимости
 
+см приложение
+
 #### Схемы баз данных
 
 [DBML-схемы](https://dbml.dbdiagram.io/home/) **всех** таблиц во **всех** используемых базах данных
@@ -130,7 +132,7 @@ GRPC. Представлено в архитектуре в сиквенсах
 
 - Предоставьте **отчет о покрытии** модульными и интеграционными тестами (можно использовать готовые инструменты для вашего ЯП)
 
-miss 
+добавил его в репу, но буду защищаться (IDE и тулзы не игнорят генерированные файлы :C) 
 
 - Предоставьте файлы с тестовыми данными (.csv, .json и др.)
 
@@ -282,3 +284,75 @@ CREATE TABLE antifraud.spent_3h (
 
 
 ```
+
+у меня не экспортируется сиквенс из мермаида
+
+copy and past here: https://mermaid.live/edit
+
+```mermaid
+sequenceDiagram
+    box Green Эта часть не реализована в проекте
+    actor u as User
+    participant smp as SomeProcessingMicroservice
+    end
+    participant cp as CoreProcessing
+    participant p as CoreProcessing_Postgres
+    participant af as Antifraud
+    participant c as Cassandra
+    u->>smp: Переведи деньги, вот сюда {transaction}
+    smp->>cp: Пользователь XXX переводит деньги YYY
+    Note over cp:от любого микросервиса процессинга идем в определенную ручку "Ядра процессинга". 
+    Note over cp:Ядро процессинга имеет возможность ФИЗИЧЕСКИ переложить деньги из состояния А в состояние Б.
+    cp->>af: проверь транзакцию
+
+    par Параллельные операции
+        af->>c: получение фичей для правила X
+        af->>af: проверка по правилу X
+    end
+
+
+    alt Фродовая транзакцию
+        af->>cp: деклайн
+        cp->>smp: деклайн
+        smp->>u: деклайн
+    end
+    Note over af: антифрод не успел дать ответ ИЛИ одобрил операцию.
+    af->>cp: contextDeadlineExceeded/Approved
+    
+    rect rgb(200, 2, 255)
+    note right of cp: ТРАНЗАКЦИОННО
+    cp->>p: дай баланс пользователя XXX
+    p->>cp: вот, держи ТЕКУЩИЙ баланс
+    cp->>cp: проверка, что можно провести операцию (CurrentBalance-TransactionAmount)
+    note right of cp: тут еще должна быть проверка под лимиты пользователя, но она не реализована
+        alt недостаточно денег, чтобы провести операцию
+            cp->>smp: limit overflow
+            smp->>u: limit overflow
+        else достаточно денег
+            cp->>p: уменьши баланс на сумму транзакции
+            cp->>p: положи в аутбокс транзакцию
+            cp->>smp: Approved
+            smp->>u: Approved
+        end
+    end
+
+    participant k as OutboxKafka
+    participant ch as AnalyticClickhouse
+    participant air as AirflowDags
+
+
+    rect rgb(200, 2, 2)
+    Note left of k: асинхронно каждые N секунд
+    k ->> p: дай что не запаблишено
+    p ->> k: скипнул что залочено, держи.
+    k ->> ch: держи что было проведено
+    k ->> p: пометь это запаблишено
+    end
+
+    rect rgb(2, 200, 2)
+    note right of air: каждые K минут/часов
+    air ->> ch: Дай мне эти данные
+    ch ->> air: держи.
+    air ->> c: положи эти данные в себя 
+
+    end

@@ -55,6 +55,20 @@ func (mr *MockRuleMockRecorder) Check(ctx, transaction any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockRule)(nil).Check), ctx, transaction)
 }
 
+// Name mocks base method.
+func (m *MockRule) Name() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Name")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Name indicates an expected call of Name.
+func (mr *MockRuleMockRecorder) Name() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Name", reflect.TypeOf((*MockRule)(nil).Name))
+}
+
 // ShouldRun mocks base method.
 func (m *MockRule) ShouldRun(ctx context.Context, transaction *model.DomainTransaction) bool {
 	m.ctrl.T.Helper()

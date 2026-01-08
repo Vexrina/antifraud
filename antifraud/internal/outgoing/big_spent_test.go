@@ -39,7 +39,7 @@ func Test_bigSpent_Check(t *testing.T) {
 					userUUID, _ := gocql.ParseUUID(a.transaction.SenderID.String())
 
 					m.EXPECT().GetFeatureInteger(
-						gomock.Any(), constants.FeatureSpent3H, constants.FeatureFilter{
+						gomock.Any(), constants.FeatureSpent3H, &constants.FeatureFilter{
 							UserID: userUUID,
 							Limit:  1,
 						},
@@ -66,7 +66,7 @@ func Test_bigSpent_Check(t *testing.T) {
 					userUUID, _ := gocql.ParseUUID(a.transaction.SenderID.String())
 
 					m.EXPECT().GetFeatureInteger(
-						gomock.Any(), constants.FeatureSpent3H, constants.FeatureFilter{
+						gomock.Any(), constants.FeatureSpent3H, &constants.FeatureFilter{
 							UserID: userUUID,
 							Limit:  1,
 						},
@@ -92,7 +92,7 @@ func Test_bigSpent_Check(t *testing.T) {
 					userUUID, _ := gocql.ParseUUID(a.transaction.SenderID.String())
 
 					m.EXPECT().GetFeatureInteger(
-						gomock.Any(), constants.FeatureSpent3H, constants.FeatureFilter{
+						gomock.Any(), constants.FeatureSpent3H, &constants.FeatureFilter{
 							UserID: userUUID,
 							Limit:  1,
 						},
@@ -118,7 +118,7 @@ func Test_bigSpent_Check(t *testing.T) {
 					userUUID, _ := gocql.ParseUUID(a.transaction.SenderID.String())
 
 					m.EXPECT().GetFeatureInteger(
-						gomock.Any(), constants.FeatureSpent3H, constants.FeatureFilter{
+						gomock.Any(), constants.FeatureSpent3H, &constants.FeatureFilter{
 							UserID: userUUID,
 							Limit:  1,
 						},

@@ -105,7 +105,7 @@ func Test_largeCashOutDuring1h_Check(t *testing.T) {
 					userUUID, _ := gocql.ParseUUID(a.transaction.SenderID.String())
 
 					m.EXPECT().GetFeatureInteger(
-						gomock.Any(), constants.FeatureCashOut30M, constants.FeatureFilter{
+						gomock.Any(), constants.FeatureCashOut30M, &constants.FeatureFilter{
 							UserID: userUUID,
 							Limit:  1,
 						},
@@ -131,7 +131,7 @@ func Test_largeCashOutDuring1h_Check(t *testing.T) {
 					userUUID, _ := gocql.ParseUUID(a.transaction.SenderID.String())
 
 					m.EXPECT().GetFeatureInteger(
-						gomock.Any(), constants.FeatureCashOut30M, constants.FeatureFilter{
+						gomock.Any(), constants.FeatureCashOut30M, &constants.FeatureFilter{
 							UserID: userUUID,
 							Limit:  1,
 						},
@@ -157,7 +157,7 @@ func Test_largeCashOutDuring1h_Check(t *testing.T) {
 					userUUID, _ := gocql.ParseUUID(a.transaction.SenderID.String())
 
 					m.EXPECT().GetFeatureInteger(
-						gomock.Any(), constants.FeatureCashOut30M, constants.FeatureFilter{
+						gomock.Any(), constants.FeatureCashOut30M, &constants.FeatureFilter{
 							UserID: userUUID,
 							Limit:  1,
 						},
@@ -183,7 +183,7 @@ func Test_largeCashOutDuring1h_Check(t *testing.T) {
 					userUUID, _ := gocql.ParseUUID(a.transaction.SenderID.String())
 
 					m.EXPECT().GetFeatureInteger(
-						gomock.Any(), constants.FeatureCashOut30M, constants.FeatureFilter{
+						gomock.Any(), constants.FeatureCashOut30M, &constants.FeatureFilter{
 							UserID: userUUID,
 							Limit:  1,
 						},

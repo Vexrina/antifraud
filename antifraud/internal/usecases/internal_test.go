@@ -47,6 +47,7 @@ func TestInternalCheck_Check(t *testing.T) {
 				r1 := mocks.NewMockRule(ctrl)
 				r1.EXPECT().ShouldRun(gomock.Any(), gomock.Any()).Return(true)
 				r1.EXPECT().Check(gomock.Any(), gomock.Any()).Return(errors.New("declined"))
+				r1.EXPECT().Name().Return("r1")
 				return []Rule{r1}
 			},
 			args: args{
@@ -63,9 +64,12 @@ func TestInternalCheck_Check(t *testing.T) {
 			name: "multiple rules, one error",
 			rules: func(ctrl *gomock.Controller) []Rule {
 				r1 := mocks.NewMockRule(ctrl)
+				r1.EXPECT().ShouldRun(gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+				r1.EXPECT().Check(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 				r2 := mocks.NewMockRule(ctrl)
 				r2.EXPECT().ShouldRun(gomock.Any(), gomock.Any()).Return(true)
 				r2.EXPECT().Check(gomock.Any(), gomock.Any()).Return(errors.New("rule2 failed"))
+				r2.EXPECT().Name().Return("r").AnyTimes()
 				return []Rule{r1, r2}
 			},
 			args: args{

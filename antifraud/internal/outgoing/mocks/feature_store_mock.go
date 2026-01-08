@@ -42,7 +42,7 @@ func (m *MockFeatureStore) EXPECT() *MockFeatureStoreMockRecorder {
 }
 
 // GetFeatureInteger mocks base method.
-func (m *MockFeatureStore) GetFeatureInteger(ctx context.Context, featureID constants.FeatureType, featureFilter constants.FeatureFilter) ([]int64, error) {
+func (m *MockFeatureStore) GetFeatureInteger(ctx context.Context, featureID constants.FeatureType, featureFilter *constants.FeatureFilter) ([]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFeatureInteger", ctx, featureID, featureFilter)
 	ret0, _ := ret[0].([]int64)
@@ -57,7 +57,7 @@ func (mr *MockFeatureStoreMockRecorder) GetFeatureInteger(ctx, featureID, featur
 }
 
 // GetFeatureString mocks base method.
-func (m *MockFeatureStore) GetFeatureString(ctx context.Context, featureID constants.FeatureType, featureFilter constants.FeatureFilter) ([]string, error) {
+func (m *MockFeatureStore) GetFeatureString(ctx context.Context, featureID constants.FeatureType, featureFilter *constants.FeatureFilter) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFeatureString", ctx, featureID, featureFilter)
 	ret0, _ := ret[0].([]string)
