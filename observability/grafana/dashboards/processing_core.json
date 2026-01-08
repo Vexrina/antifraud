@@ -1,0 +1,213 @@
+{
+  "title": "Processing Core Metrics",
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+      {
+        "title": "CPU Usage (%)",
+        "type": "timeseries",
+        "gridPos": {
+          "h": 10,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "100 * rate(process_cpu_seconds_total{job=\"processing_core\"}[1m])",
+            "legendFormat": "{{instance}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent"
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "table",
+            "placement": "right",
+            "calcs": ["mean", "max", "min", "last"]
+          }
+        }
+      },
+      {
+        "title": "Memory Usage",
+        "type": "timeseries",
+        "gridPos": {
+          "h": 10,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "process_resident_memory_bytes{job=\"processing_core\"}",
+            "legendFormat": "{{instance}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes"
+          }
+        },
+        "options": {
+          "legend": {
+            "displayMode": "table",
+            "placement": "right",
+            "calcs": ["mean", "max", "min", "last"]
+          }
+        }
+      },
+    {
+      "title": "gRPC Requests per Second",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(processing_grpc_requests_total[1m])) by (method)",
+          "legendFormat": "{{method}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": ["mean", "max", "min", "last"]
+        }
+      },
+      "fieldConfig": { "defaults": { "unit": "req/s" } }
+    },
+    {
+      "title": "gRPC Latency P50 (50th percentile)",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 6 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(processing_grpc_request_duration_seconds_bucket[1m])) by (le, method))",
+          "legendFormat": "{{method}}",
+          "refId": "B"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": ["mean", "max", "min", "last"]
+        }
+      },
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+    {
+      "title": "gRPC Latency P90 (90th percentile)",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 12 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.90, sum(rate(processing_grpc_request_duration_seconds_bucket[1m])) by (le, method))",
+          "legendFormat": "{{method}}",
+          "refId": "C"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": ["mean", "max", "min", "last"]
+        }
+      },
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+    {
+      "title": "gRPC Latency P95 (95th percentile)",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 18 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(processing_grpc_request_duration_seconds_bucket[1m])) by (le, method))",
+          "legendFormat": "{{method}}",
+          "refId": "D"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": ["mean", "max", "min", "last"]
+        }
+      },
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+
+    {
+      "title": "gRPC Errors: Limit Overflow",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 44 },
+      "targets": [
+        {
+          "expr": "sum(rate(processing_grpc_errors_total{reason=\"limit_overflow\"}[1m])) by (method)",
+          "legendFormat": "{{method}}",
+          "refId": "G"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "none" } },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean","max","min","last"] }
+      }
+    },
+    {
+      "title": "gRPC Errors: fraud operations",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 50 },
+      "targets": [
+        {
+          "expr": "sum(rate(processing_grpc_errors_total{reason=\"fraud_operation\"}[1m])) by (method)",
+          "legendFormat": "{{method}}",
+          "refId": "H"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "none" } },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean","max","min","last"] }
+      }
+    },
+    {
+      "title": "gRPC Errors: Other",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 50 },
+      "targets": [
+        {
+          "expr": "sum(rate(processing_grpc_errors_total{reason=\"other\"}[1m])) by (method)",
+          "legendFormat": "{{method}}",
+          "refId": "H"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "none" } },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean","max","min","last"] }
+      }
+    },
+    {
+      "title": "gRPC Errors: context canceled",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 50 },
+      "targets": [
+        {
+          "expr": "sum(rate(processing_grpc_errors_total{reason=\"context_canceled\"}[1m])) by (method)",
+          "legendFormat": "{{method}}",
+          "refId": "H"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "none" } },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean","max","min","last"] }
+      }
+    }
+  ],
+  "schemaVersion": 36,
+  "version": 1
+}

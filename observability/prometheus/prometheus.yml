@@ -9,4 +9,4 @@ scrape_configs:
 
   - job_name: 'processing_core'
     static_configs:
-      - targets: [ 'localhost:9100']
+      - targets: [ 'processing-core:9100']
