@@ -1,0 +1,51 @@
+Project antifraud {
+  Note: "Cassandra keyspace antifraud. SimpleStrategy, replication_factor = 1"
+}
+
+Table cash_out_30m [
+  note: "30-minute aggregation window. Total cash-out per user"
+] {
+  user_id uuid [note: "PARTITION KEY"]
+  window_start timestamp [note: "CLUSTERING KEY"]
+  total_cashout decimal [note: "Total cash-out amount in window"]
+
+  Indexes {
+    (user_id, window_start) [pk]
+  }
+}
+
+Table sbp_partners_30m [
+  note: "30-minute window. SBP partners. TTL = 2 days (172800s)"
+] {
+  user_id uuid [note: "PARTITION KEY"]
+  window_start timestamp [note: "CLUSTERING KEY DESC"]
+  partner_id uuid [note: "CLUSTERING KEY ASC"]
+
+  Indexes {
+    (user_id, window_start, partner_id) [pk]
+  }
+}
+
+Table internal_partners_30m [
+  note: "30-minute window. Internal partners. TTL = 2 days (172800s)"
+] {
+  user_id uuid [note: "PARTITION KEY"]
+  window_start timestamp [note: "CLUSTERING KEY DESC"]
+  partner_id uuid [note: "CLUSTERING KEY ASC"]
+
+  Indexes {
+    (user_id, window_start, partner_id) [pk]
+  }
+}
+
+Table spent_3h [
+  note: "3-hour aggregation window. Total spent excluding CashIn. TTL = 2 days (172800s)"
+] {
+  user_id uuid [note: "PARTITION KEY"]
+  window_start timestamp [note: "CLUSTERING KEY ASC"]
+  total_spent decimal [note: "Total spent excluding CashIn"]
+
+  Indexes {
+    (user_id, window_start) [pk]
+  }
+}

@@ -9,7 +9,7 @@ import core_pb2
 import core_pb2_grpc
 
 # Конфигурация
-NUM_UUIDS = 10_000
+NUM_UUIDS = 100_000
 
 SERVER = "localhost:9090"  # порт gRPC сервера
 N_SECONDS = 0.01
@@ -33,7 +33,7 @@ for i in range(NUM_UUIDS):
     uuids.append(str(uuid.uuid4()))
     
 print(f"end generate {NUM_UUIDS} for test")
-currentID = 0
+currentID = 631794 + 100
 
 def random_transaction(user_id: uuid.UUID|None) -> core_pb2.Transaction:
     global currentID
@@ -44,7 +44,7 @@ def random_transaction(user_id: uuid.UUID|None) -> core_pb2.Transaction:
         id=currentID,
         transaction_id=str(uuid.uuid4()),
         created_at=ts,
-        amount=random.randint(100, 100_000)*100, # в копейках!
+        amount=random.randint(1_000, 200_000)*100, # в копейках!
         currency=random.choice(CURRENCIES),
         merchant=random.choice(MERCHANTS),
         country=random.choice(COUNTRIES),
@@ -75,7 +75,7 @@ def random_request(method, clientID: uuid.UUID|None=None):
         return core_pb2.CashOutRequest(id=req_id, transaction=tx, atm_id=atm_id)
 
 def main():
-    i = 200_000
+    i = 400_000
     with grpc.insecure_channel(SERVER) as channel:
         stub = core_pb2_grpc.CoreStub(channel)
         print("*" * 20)
