@@ -2,16 +2,17 @@ import grpc
 import uuid
 import random
 from datetime import datetime
+import time
 from google.protobuf.timestamp_pb2 import Timestamp
 
 import core_pb2
 import core_pb2_grpc
 
 # Конфигурация
-NUM_UUIDS = 1000
+NUM_UUIDS = 10_000
 
-SERVER = "localhost:8081"  # порт gRPC сервера
-N_SECONDS = 2
+SERVER = "localhost:9090"  # порт gRPC сервера
+N_SECONDS = 0.01
 
 CURRENCIES = [1, 2, 3]
 COUNTRIES = ["RU", "US", "CA"]
@@ -26,10 +27,14 @@ ENDPOINTS = [
     "/v1/cash/out"
 ]
 
-uuids = [str(uuid.uuid4()) for _ in range(NUM_UUIDS)]
-currentID = 10
+print(f"start generate {NUM_UUIDS} for test")
+uuids = []
+for i in range(NUM_UUIDS):
+    uuids.append(str(uuid.uuid4()))
+    
+print(f"end generate {NUM_UUIDS} for test")
+currentID = 0
 
-# Генератор случайной транзакции (JSON)
 def random_transaction(user_id: uuid.UUID|None) -> core_pb2.Transaction:
     global currentID
     ts = Timestamp()
@@ -39,14 +44,13 @@ def random_transaction(user_id: uuid.UUID|None) -> core_pb2.Transaction:
         id=currentID,
         transaction_id=str(uuid.uuid4()),
         created_at=ts,
-        amount=random.randint(100, 100_000),
+        amount=random.randint(100, 100_000)*100, # в копейках!
         currency=random.choice(CURRENCIES),
         merchant=random.choice(MERCHANTS),
         country=random.choice(COUNTRIES),
         sender_id = str(user_id) if user_id is not None else str(uuids[random.randint(0, NUM_UUIDS - 1)])
     )
 
-# Генератор случайного запроса под каждый эндпоинт
 def random_request(method, clientID: uuid.UUID|None=None):
     tx = random_transaction(clientID)
 
@@ -70,21 +74,33 @@ def random_request(method, clientID: uuid.UUID|None=None):
     elif method == "CashOut":
         return core_pb2.CashOutRequest(id=req_id, transaction=tx, atm_id=atm_id)
 
-# Основной async loop
 def main():
-    i = 0
+    i = 200_000
     with grpc.insecure_channel(SERVER) as channel:
         stub = core_pb2_grpc.CoreStub(channel)
+        print("*" * 20)
+        print("Start add balance for clients")
+        print("*" * 20)
+        now = datetime.now()
+        j = 0
         for uuid in uuids:
             method = 'CashIn'
             req = random_request(method, uuid)
             try:
                 resp = stub.CashIn(req)
-                print(f"{method} called, status: {resp.new_status}")
+                if j % 1000 == 0:
+                    print(f"REQ# {j+1}")
+                j+=1
             except Exception as e:
-                print(f"Ignored error in {method}: {e}")
-
-        while i!=10_000:
+                continue
+        end = datetime.now()
+        print("*" * 20)
+        print(f"End add balance for clients, time taken: {end - now}")
+        print("*" * 20)
+        print("Start create transactions")
+        print("*" * 20)
+        now = datetime.now()
+        while True:
             method = random.choice(METHODS)
             req = random_request(method)
             try:
@@ -96,13 +112,16 @@ def main():
                     resp = stub.CashIn(req)
                 elif method == "CashOut":
                     resp = stub.CashOut(req)
-                print(f"{method} called, status: {resp.new_status}")
+                if i % 1000 == 0:
+                    print(f"REQ# {i+1}")
             except Exception as e:
                 print(f"Ignored error in {method}: {e}")
-            
-            import time
-            time.sleep(N_SECONDS)
+            # time.sleep(N_SECONDS)
             i+=1
+        end = datetime.now()
+        print("*" * 20)
+        print(f"End create transactions, time taken: {end - now}")
+        print("*" * 20)
 
 if __name__ == "__main__":
     main()

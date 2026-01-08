@@ -32,6 +32,10 @@ func NewBigSpent(
 	}
 }
 
+func (l *bigSpent) Name() string {
+	return l.name
+}
+
 func (l *bigSpent) ShouldRun(_ context.Context, transaction *model.DomainTransaction) bool {
 	if !l.isOn {
 		return false

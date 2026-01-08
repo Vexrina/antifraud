@@ -30,7 +30,11 @@ func (i *InternalCheck) Check(
 				return nil
 			}
 
-			return currentRule.Check(ctx, transaction)
+			err := currentRule.Check(ctx, transaction)
+			if err != nil {
+				incrementMetric(err, rule.Name(), InternalTransaction)
+			}
+			return err
 		})
 	}
 

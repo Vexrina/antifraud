@@ -31,6 +31,10 @@ func NewLargeCashOutDuring1H(
 	}
 }
 
+func (l *largeCashOutDuring1h) Name() string {
+	return l.name
+}
+
 func (l *largeCashOutDuring1h) ShouldRun(_ context.Context, transaction *model.DomainTransaction) bool {
 	if !l.isOn {
 		return false

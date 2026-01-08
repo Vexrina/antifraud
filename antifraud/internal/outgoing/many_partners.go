@@ -37,6 +37,10 @@ func NewManyPartners(
 	}
 }
 
+func (l *manyPartners) Name() string {
+	return fmt.Sprintf("%s_%s", l.name, lo.Ternary(l.mode == 0, "internal", "sbp"))
+}
+
 func (l *manyPartners) ShouldRun(_ context.Context, transaction *model.DomainTransaction) bool {
 	if !l.isOn {
 		return false
@@ -70,9 +74,8 @@ func (l *manyPartners) Check(ctx context.Context, transaction *model.DomainTrans
 		return nil
 	}
 	return fmt.Errorf(
-		"declined, [%s_%s] number of partners more than ths [%v > %v]",
-		l.name,
-		lo.Ternary(l.mode == 0, "internal", "sbp"),
+		"declined, [%s] number of partners more than ths [%v > %v]",
+		l.Name(),
 		len(uniqPartners),
 		l.partners,
 	)

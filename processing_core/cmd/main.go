@@ -57,7 +57,7 @@ func main() {
 	// af service
 	afConn := getConn(
 		getEnv("AF_API_HOST", "localhost"),
-		getEnv("AF_API_PORT", "8082"),
+		getEnv("AF_API_PORT", "9091"),
 	)
 	defer afConn.Close()
 	afChecker := antifraud.NewOnlineCheckClient(afConn)

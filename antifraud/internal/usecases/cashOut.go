@@ -30,7 +30,11 @@ func (i *CashOutCheck) Check(
 				return nil
 			}
 
-			return currentRule.Check(ctx, transaction)
+			err := currentRule.Check(ctx, transaction)
+			if err != nil {
+				incrementMetric(err, rule.Name(), cashOutTransaction)
+			}
+			return err
 		})
 	}
 

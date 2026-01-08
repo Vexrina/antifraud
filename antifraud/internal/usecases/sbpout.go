@@ -30,7 +30,11 @@ func (i *SbpOutCheck) Check(
 				return nil
 			}
 
-			return currentRule.Check(ctx, transaction)
+			err := currentRule.Check(ctx, transaction)
+			if err != nil {
+				incrementMetric(err, rule.Name(), SbpTransaction)
+			}
+			return err
 		})
 	}
 

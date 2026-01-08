@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	cashOutCheckTimeout  = 200 * time.Millisecond
+	cashOutCheckTimeout  = 200 * time.Hour
 	sbpOutCheckTimeout   = 250 * time.Millisecond
 	internalCheckTimeout = 400 * time.Millisecond
 )
@@ -29,8 +29,9 @@ func NewAfIntegration(af antifraud.OnlineCheckClient) *afIntegration {
 }
 
 func (af *afIntegration) CashOutCheck(ctx context.Context, operation *model.CashOutDomainRequest) error {
-	ctx, cancel := context.WithTimeout(ctx, cashOutCheckTimeout)
-	defer cancel()
+	ctx = context.WithoutCancel(ctx)
+	//ctx, cancel := context.WithTimeout(ctx, cashOutCheckTimeout)
+	//defer cancel()
 	res, err := af.af.CashOut(ctx, mapCashOutToAntifraudTransaction(operation))
 	if err != nil {
 		// todo log
@@ -89,7 +90,7 @@ func mapInternalToAntifraudTransaction(domain *model.InternalDomainRequest) *ant
 }
 
 func (af *afIntegration) SbpOutgoingCheck(ctx context.Context, operation *model.SbpOutgoingDomainRequest) error {
-	ctx, cancel := context.WithTimeout(ctx, cashOutCheckTimeout)
+	ctx, cancel := context.WithTimeout(ctx, sbpOutCheckTimeout)
 	defer cancel()
 	res, err := af.af.SbpOutgoing(ctx, mapSbpOutgoingToAntifraudTransaction(operation))
 	if err != nil {
