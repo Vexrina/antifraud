@@ -1,0 +1,53 @@
+Table user_balance {
+  client_id uuid [note: "id пользака"]
+  balance bigint [note: "кол-во денег на балансе"]
+  revision bigserial [note: "ревизия баланса"]
+  created_at timestamptz [note: "время первой инициализации баланса, по сути отражает когда пользак был проинициализирован в выпуски и доехал до ядра процессинга"]
+  updated_at timestamptz [note: "время обновления баланса"]
+  Indexes {
+    (client_id) [unique, name: "user_balance_client_id_uindex"]
+  }
+}
+
+Enum transaction_type {
+  internal
+  cash_in
+  cash_out
+  sbp_outgoing
+}
+
+Table transactions_history {
+  id integer [pk, note: "уникальный ключ"]
+  transaction_id uuid [unique, note: "UUID транзакции из внешней системы"]
+  created_at timestamptz [note: "дата и время операции как пришло к нам и обработалось у нас"]
+  amount bigint [note: "сумма транзакции"]
+  currency integer [note: "валюта"]
+  merchant text [note: "название/идентификатор магазина/сервиса"]
+  country text [note: "ISO-код страны (RU/US/CA)"]
+  sender_id uuid [note: "uuid отправителя"]
+  receiver_id uuid [note: "uuid получателя"]
+  receiver_bic text [note: "bic банка получателя"]
+  atm_id uuid [note: "uuid банкомата"]
+  transaction_type transaction_type [note: "тип транзакции"]
+  revision bigserial [note: "ревизия"]
+
+  Indexes {
+    (sender_id)
+    (receiver_id)
+  }
+}
+
+
+Table outbox {
+  id bigserial [pk]
+  aggregate_id uuid [not null]
+  event_type text [not null]
+  payload jsonb [not null]
+  created_at timestamptz
+  published boolean
+  version bigint
+
+  Indexes {
+    (published, created_at) [name: "idx_outbox_unpublished"]
+  }
+}

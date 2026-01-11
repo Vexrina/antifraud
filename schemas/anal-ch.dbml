@@ -1,0 +1,50 @@
+Table kafka_transactions_raw [note: "ClickHouse Kafka engine. Source topic: best_bank_transactions"] {
+  id String
+  transactionId String
+  createdAt String
+  amount String
+  currency String
+  merchant String
+  country String
+  senderId String
+  receiverId String [note: "Nullable"]
+  receiverBic String [note: "Nullable"]
+  atmId String [note: "Nullable"]
+  transactionType String
+  revision String [note: "Nullable"]
+}
+
+Table transactions [note: "ClickHouse MergeTree. ORDER BY id"] {
+  id UInt64 [note: "ORDER BY key"]
+  transaction_id String
+  created_at DateTime64 [note: "precision: 3"]
+  amount Int64
+  currency String
+  merchant String
+  country String
+  sender_id String [note: "Nullable"]
+  receiver_id String [note: "Nullable"]
+  receiver_bic String [note: "Nullable"]
+  atm_id String [note: "Nullable"]
+  transaction_type String [note: "Nullable"]
+  revision Int64 [default: 0, note: "Nullable in source"]
+}
+
+Table mv_kafka_transactions [note: "Materialized View: kafka_transactions_raw → transactions"] {
+  id UInt64
+  transaction_id String
+  created_at DateTime
+  amount Int64
+  currency String
+  merchant String
+  country String
+  sender_id String [note: "Nullable"]
+  receiver_id String [note: "Nullable"]
+  receiver_bic String [note: "Nullable"]
+  atm_id String [note: "Nullable"]
+  transaction_type String [note: "Nullable"]
+  revision Int64
+}
+
+Ref: kafka_transactions_raw.id < mv_kafka_transactions.id
+Ref: mv_kafka_transactions.id < transactions.id
